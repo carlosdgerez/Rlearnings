@@ -1,0 +1,69 @@
+﻿Label (Grouping),United States!!Total!!Estimate,United States!!Total!!Margin of Error,United States!!Below poverty level!!Estimate,United States!!Below poverty level!!Margin of Error,United States!!Percent below poverty level!!Estimate,United States!!Percent below poverty level!!Margin of Error
+Population for whom poverty status is determined,"320,118,791","±24,954","39,490,096","±242,000",12.30%,±0.1
+    AGE,,,,,,
+        Under 18 years,"71,633,453","±39,859","12,000,470","±134,475",16.80%,±0.2
+            Under 5 years,"19,002,162","±24,352","3,457,689","±51,835",18.20%,±0.3
+            5 to 17 years,"52,631,291","±38,914","8,542,781","±98,380",16.20%,±0.2
+            Related children of householder under 18 years,"71,326,895","±42,129","11,716,595","±134,827",16.40%,±0.2
+        18 to 64 years,"195,703,010","±30,404","22,504,357","±113,070",11.50%,±0.1
+            18 to 34 years,"71,922,088","±37,978","10,417,120","±73,212",14.50%,±0.1
+            35 to 64 years,"123,780,922","±48,286","12,087,237","±74,285",9.80%,±0.1
+        60 years and over,"73,579,563","±66,617","7,162,352","±46,169",9.70%,±0.1
+        65 years and over,"52,782,328","±26,315","4,985,269","±36,715",9.40%,±0.1
+    SEX,,,,,,
+        Male,"156,743,490","±42,059","17,473,451","±123,014",11.10%,±0.1
+        Female,"163,375,301","±45,562","22,016,645","±137,887",13.50%,±0.1
+    RACE AND HISPANIC OR LATINO ORIGIN,,,,,,
+        White alone,"231,191,647","±101,215","23,828,085","±203,823",10.30%,±0.1
+        Black or African American alone,"40,291,288","±78,962","8,557,464","±86,813",21.20%,±0.2
+        American Indian and Alaska Native alone,"2,749,899","±33,996","633,584","±19,354",23.00%,±0.7
+        Asian alone,"18,274,780","±40,507","1,761,321","±35,380",9.60%,±0.2
+        Native Hawaiian and Other Pacific Islander alone,"608,300","±17,929","100,256","±10,523",16.50%,±1.7
+        Some other race alone,"16,016,665","±120,620","2,935,304","±60,267",18.30%,±0.3
+        Two or more races,"10,986,212","±119,885","1,674,082","±38,384",15.20%,±0.3
+        Hispanic or Latino origin (of any race),"59,226,212","±22,870","10,201,081","±106,111",17.20%,±0.2
+"        White alone, not Hispanic or Latino","192,289,025","±32,778","17,352,095","±147,912",9.00%,±0.1
+    EDUCATIONAL ATTAINMENT,,,,,,
+        Population 25 years and over,"221,309,178","±69,454","22,277,293","±100,474",10.10%,±0.1
+            Less than high school graduate,"24,684,741","±124,554","5,769,908","±52,665",23.40%,±0.2
+            High school graduate (includes equivalency),"58,978,752","±181,385","7,703,553","±55,245",13.10%,±0.1
+"            Some college, associate's degree","63,469,132","±124,428","5,781,713","±44,040",9.10%,±0.1
+            Bachelor's degree or higher,"74,176,553","±238,708","3,022,119","±35,088",4.10%,±0.1
+    EMPLOYMENT STATUS,,,,,,
+        Civilian labor force 16 years and over,"165,157,929","±158,642","11,009,125","±71,784",6.70%,±0.1
+            Employed,"157,766,768","±156,792","8,918,835","±62,296",5.70%,±0.1
+                Male,"82,669,669","±91,074","3,886,120","±43,570",4.70%,±0.1
+                Female,"75,097,099","±105,995","5,032,715","±43,140",6.70%,±0.1
+            Unemployed,"7,391,161","±47,457","2,090,290","±29,774",28.30%,±0.4
+                Male,"3,965,365","±36,702","1,018,900","±16,758",25.70%,±0.4
+                Female,"3,425,796","±32,910","1,071,390","±20,116",31.30%,±0.5
+    WORK EXPERIENCE,,,,,,
+        Population 16 years and over,"256,651,001","±52,263","28,665,305","±140,560",11.20%,±0.1
+"            Worked full-time, year-round in the past 12 months","115,316,851","±128,608","2,879,476","±32,746",2.50%,±0.1
+            Worked part-time or part-year in the past 12 months,"55,905,879","±142,919","8,345,468","±63,452",14.90%,±0.1
+            Did not work,"85,428,271","±150,402","17,440,361","±112,546",20.40%,±0.1
+    ALL INDIVIDUALS WITH INCOME BELOW THE FOLLOWING POVERTY RATIOS,,,,,,
+        50 percent of poverty level,"17,602,164","±126,927",(X),(X),(X),(X)
+        125 percent of poverty level,"52,189,901","±299,896",(X),(X),(X),(X)
+        150 percent of poverty level,"65,139,120","±335,989",(X),(X),(X),(X)
+        185 percent of poverty level,"84,162,461","±410,280",(X),(X),(X),(X)
+        200 percent of poverty level,"92,655,786","±420,869",(X),(X),(X),(X)
+        300 percent of poverty level,"143,196,072","±488,803",(X),(X),(X),(X)
+        400 percent of poverty level,"187,401,509","±435,812",(X),(X),(X),(X)
+        500 percent of poverty level,"221,484,622","±368,116",(X),(X),(X),(X)
+UNRELATED INDIVIDUALS FOR WHOM POVERTY STATUS IS DETERMINED,"63,367,537","±165,049","15,147,496","±85,504",23.90%,±0.1
+    Male,"31,102,291","±114,229","6,650,045","±58,989",21.40%,±0.2
+    Female,"32,265,246","±88,999","8,497,451","±47,268",26.30%,±0.1
+    15 years,"83,618","±5,420","82,208","±5,378",98.30%,±0.8
+    16 to 17 years,"204,953","±8,533","194,244","±8,321",94.80%,±0.9
+    18 to 24 years,"6,838,105","±61,734","3,197,531","±47,239",46.80%,±0.4
+    25 to 34 years,"13,454,841","±75,922","2,309,930","±31,903",17.20%,±0.2
+    35 to 44 years,"7,718,960","±50,822","1,499,258","±19,931",19.40%,±0.2
+    45 to 54 years,"7,978,652","±49,774","1,812,966","±22,813",22.70%,±0.2
+    55 to 64 years,"10,455,530","±54,536","2,724,824","±29,640",26.10%,±0.3
+    65 to 74 years,"8,654,115","±44,737","1,756,993","±22,093",20.30%,±0.2
+    75 years and over,"7,978,763","±37,753","1,569,542","±21,215",19.70%,±0.2
+    Mean income deficit for unrelated individuals (dollars),"7,363",±22,(X),(X),(X),(X)
+"    Worked full-time, year-round in the past 12 months","28,435,494","±110,218","986,970","±18,256",3.50%,±0.1
+"    Worked less than full-time, year-round in the past 12 months","12,969,793","±65,338","4,594,315","±42,343",35.40%,±0.3
+    Did not work,"21,962,250","±91,281","9,566,211","±63,777",43.60%,±0.2

@@ -1,0 +1,137 @@
+---
+title: "Week 12 CRS Exercises"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:  
+    keep_md: false
+    toc: true
+    toc_float: true
+    code_folding: show
+    fig_height: 6
+    fig_width: 12
+    fig_align: 'center'
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, error = TRUE)
+```
+
+```{r load_libraries, include=FALSE}
+# Use this R-Chunk to load all your libraries!
+#install.packages("tidyverse") # run this line once in console to get package
+library(tidyverse)
+
+
+```
+
+These exercises are to help you get familiar with using/adjusting the CRS in R as well as exploring how/where to find EPSG codes, CRS and projection information.
+
+We will pick up where the reading left off, with a map of Idaho counties obtained by running the chunk of R code below.
+
+```{r eval = FALSE, include = TRUE, echo = TRUE}
+library(sf)
+ID_counties <- USAboundaries::us_counties(states = "ID")
+st_crs(ID_counties)
+
+#The creation of the map used previously in the reading
+default_CRS_map <- ggplot() + 
+  geom_sf(data = ID_counties) + 
+  theme_bw()
+
+default_CRS_map
+
+
+```
+
+## Redefining the Coordinate Reference System
+
+Now, in this exercise we want to redefine the coordinate reference system (CRS) of a map.
+
+### Method 1
+
+Alter the CRS by **using an EPSG**
+
+* Search for an EPSG that works: https://epsg.org/home.html.
+    *   You can search with a text key word, or search by using a map.
+    
+```{r epsg, eval = FALSE}
+default_CRS_map +
+  coord_sf(crs = st_crs(5041))
+```
+
+
+### Method 2
+
+Alter the CRS (especially the projection parameter) in the **proj4 string**
+
+* Here is a nice list of [some standard projections to choose from.](http://www.radicalcartography.net/?projectionref). Look in the "Name" column for names of differnet projections.
+* Then we can 'search' for that name here: [projection type](http://spatialreference.org/ref/).
+    *  After seleting the name, click on "Proj4" to get the proj4string.
+    * Look specifically at the input for the "+proj=" argument.
+* Copy the proj4 string into R
+
+```{r proj, eval = FALSE}
+default_CRS_map +
+  coord_sf(crs = st_crs("+proj=tmerc +lat_0=42 +lon_0=-114 +k=0.9996 +x_0=2500000 +y_0=1200000 +ellps=GRS80 +units=m +no_defs" ))
+
+
+```
+
+Are you able to change the CRS with both of the methods described above? Are you able to find a different CRS that works?
+
+Note, you can **change where the map is centered** by  the use of +lat_0= and +lon_0= in the proj4 string. For example, to center the map on Maine, US, the coordinates are 69.8 degrees West and 44.5 degrees North. That would look like +lat_0=44.5 +lat_0=-69.8.
+
+## Task Hints
+
+When reading in data for the *Getting in Shape* task, do NOT manually download the zip file. Use code to read/download the zip file directly from the website, extract its contents, and then read it into R as an sf object.
+
+You can use the `rio` package as a simple way to do this. Or, the code below is an alternative example of how you can do that. **Write out in a paragraph what this code is doing** to solidify your understanding.
+
+```{r p1, eval=FALSE, echo=TRUE}
+
+pacman::p_load(downloader, sf, fs, tidyverse)
+dams_path <- "https://research.idwr.idaho.gov/gis/Spatial/Hydrography/streams_lakes/c_250k/hyd250.zip"
+df <- tempfile(); uf <- tempfile()
+download(dams_path, df, mode = "wb")
+unzip(df, exdir = uf)
+rivers <- read_sf(uf)
+file_delete(df); dir_delete(uf)
+rivers
+
+
+
+###################### Try rio #######################################
+library(rio)
+
+# as I cabn see has to download the file and inziped before to import. 
+
+# rivers2 <-  import(dams_path)
+```
+
+
+## Solutions
+
+### Changing the CRS solution
+
+Here are a couple of examples to see how it works. Not every projection will work, or work well. If the projection or EPSG code you try at first doesn't work, that's okay. They won't all work for the map you are trying to create. Keep fishing for one that does.
+
+[Method 1: Finding an EPSG code to change the CRS.](https://www.loom.com/share/b2dabec5c2294a26a751ec650ab1e337)
+
+[Method 2: Using the proj4 string to change the CRS.](https://www.loom.com/share/e7edcb94250349dbbba48ae9c033391f)
+
+
+
+### Task Hint: Describing the code
+
+The pacman package allows you to more concisely specify the libraries you would like to load. It has the added advantage that it will install the libraries for you if you have not yet installed them.
+
+One of the packages being loaded is the `fs` package. This stands for file system. We have not used this package in past examples, but it will be helpful to delete the temporary files and temporary directories we create.
+
+We store the web URL where the data is located in a string called `dams_path`. We then create a temporary file. That file location and name is where we will save the data to when we read it in. We also create an object that references the path to the folder where the temporary file is stored.
+
+The `download` statement reads in the zip file from the web and stores it in the temporary file we just created (named `df`). The `unzip` command will extract the files from the zip file and store them at the path stored in the `uf` object. (This path is the same folder where the zip file resides). Though a few files were extracted, they all work in tandem to define shapes. We tell the `read_sf` command where we extracted the zipped files to. It will find the collection of files and put them together to create a single, simple features object in R which we are naming `rivers`.
+
+Finally, we will use commands from the `fs` package to delete the temporary file and temporary directory so that we can repeat the process; starting over with a fresh new temporary file and directory.
+
+
+

@@ -1,0 +1,195 @@
+---
+title: "Week 4 tidyr"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: show
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = TRUE)
+```
+
+Take time to answer each question and create working code that you understand.
+
+As you go through the activity, try to complete the exercise on your own. Each exercise is meant to take 5-10 minutes. If you are stuck or lost, try watching the code solution video linked at the bottom of the file.
+
+## Background
+
+Each semester BYU-Idaho holds a Research and Creative Works Conference (R&CW) where on-campus students can display key projects they have worked on during the semester. We will be analyzing the R&CW. Our goal is to see how many projects come from which departments over time.
+
+## Read in data
+
+To start, run this code to read in the data:
+
+
+```{r echo=TRUE}
+library(tidyverse, warn.conflicts = FALSE)
+dat <- read_csv("https://byuistats.github.io/M335/data/rcw_reshape.csv")
+
+
+dat
+
+
+```
+
+*Is the data in long or wide format? How can you tell?*
+
+## Pivoting
+
+Instructions:
+1. Using what you learned in the reading, convert the data to wide format (one column per Department) and save it under a new name
+2. Now convert the wide dataset back to long format
+
+```{r wide_v_long}
+#convert it to wide here
+dat_wide <- dat %>% pivot_wider(names_from = Department, values_from = Count)
+dat_wide
+
+#now convert the wide data back to long format
+
+dat_long <- dat_wide %>% pivot_longer(c(`Chem`,`CSEE`,`DCM`,`GEO`,`Math`,`ME`,`PHY`),names_to = "Department", values_to = "count")
+
+dat_long <- dat_wide %>% pivot_longer(cols = Chem:PHY,names_to = "Department", values_to = "count")
+
+dat_long
+
+dat1 <- dat %>% pivot_wider(names_from = Department, values_from = Count) 
+   
+dat1 <- dat1 %>% pivot_longer(cols = Chem:PHY,names_to = "Department", values_to = "count")
+```
+
+
+### Discussion/Observation:
+
+* *How many rows does the new long format have? *
+* *How does that compare with the original data? Why?*
+* *What argument in pivot_longer() could you change so that the "new" long format data matches the data you originally read in.*
+*   *Discuss: When might you want to make implicit NA's explicit? Why would you not?*
+
+## Diving deeper into implicit/explicit missing values
+
+Instructions:
+
+3. Explore the following related functions/arguments, make notes as desired
+  - within pivot_wider( value_fill = )
+  - within pivot_longer( values_drop_na = )
+  - complete()
+  - expand()
+  
+4. Using one (or more) of these commands, edit the original dataset so that the implicit missing values are made explicit; and instead of a missing value for "Count" they have zeros.  Save this dataset as zeros.
+
+```{r zeros}
+dat2 <- dat1
+
+dat2 <- dat2 %>% complete()
+
+dat2$count <- replace(dat2$count, is.na(dat2$count), 0)
+
+dat2
+
+dat2[is.na(dat2)] <- 0
+dat2
+
+#using pivot with values_fill
+zeros <- dat %>% pivot_wider(names_from = Department, values_from = Count, values_fill = 0) %>%
+  pivot_longer(cols = Chem:PHY, names_to = "Department", values_to = "Count")
+zeros
+
+
+# Using complete
+# Just to show that add new combinations (emties)
+dat %>% complete(Year,Semester, Department, fill = list(Count = 0, Semester_Date = "2") )
+
+# work well without adding any new combination, and fill 
+dat %>% complete(Department, nesting(Year, Semester, Semester_Date), fill = list(Count = 0))
+
+
+# Expand with a left join to add the counts and replace-na
+dat %>% expand(Department,nesting(Year, Semester, Semester_Date)) %>% 
+  left_join(dat) %>% replace_na(list(Count = 0))
+
+```
+
+
+
+## Practice separate() and unite()
+
+Starting with your zeros data:
+
+5. Take Semester_Date column and separate it into a year, month, and day columns.
+6. unite() the Year and Semester columns for potentially easier labelling of the graphic. (I actually prefer using paste() instead of unite(), so you could get familiar with that command as well)
+7. Now create a line chart that shows the combined Year-Semester variable along the x axis and the count of projects on the y axis for each department.
+
+```{r separate}
+#5
+# usse separate and change the type of the charachter day to numeric
+dat2 <- dat2 %>% separate(col = Semester_Date, into = (c("day","month", "year"))) %>%
+  mutate(day = as.numeric(day))
+
+
+
+#6
+
+# with paste into mutate
+
+zeros %>% mutate(yrsem = paste(Year, Semester, sep = ""))
+
+
+# with unite
+zeros <- zeros %>% unite("yrsem",c(Year, Semester,), sep = "", remove = FALSE)
+
+#dat2 <- dat2 %>% unite(new, month, year)
+dat2 <- dat2 %>% unite(year_semester, Year, Semester, sep = "-")
+
+zeros
+
+
+#7 
+
+ggplot(dat2) + 
+  aes(x = year_semester, y =count, group = Department, color = Department) + 
+  geom_line() +
+#  facet_grid( . ~ year) +
+ 
+  
+   labs(x= "Year / Semester",
+       y = "Count")
+
+ggplot(zeros) + 
+  aes(x = yrsem, y = Count, group = Department, color = Department) + 
+  geom_line() +
+#  facet_grid( . ~ year) +
+ 
+ 
+   labs(x= "Year / Semester",
+       y = "Count")
+
+```
+
+You may notice that the semesters are out of chronological order. That is because the new combined column of year and semester is probably being treated as a character vector, which will always be in alphabetical order.
+
+We want to make the Year-Semester column a factor so that we can control/specify the order of the levels.
+
+```{r}
+#dat2 <- factor(dat2, "year_semester")
+# factor year semester 
+
+dat2 <- dat2 %>% mutate(year_semester = factor( level = c("2016Spring","2016Fall","2017Winter","2017Spring","2017Fall","2018Winter")))
+
+ggplot(dat2) + 
+  aes(x = year_semester, y = count, group = Department, color = Department) + 
+  geom_line() +
+#  facet_grid( . ~ year) +
+ 
+  theme_bw() +
+   labs(x= "Year / Semester",
+       y = "Count")
+
+```
+
+[Part 1 Solution to pivoting and implicit NA](https://www.loom.com/share/d49bb263d8194e60b58465a45d1b49c6?sharedAppSource=personal_library)
+
+[Part 2 Separate, Unite and Factors](https://www.loom.com/share/26b5f4b094cd4c8c8bc82c381c71730a)

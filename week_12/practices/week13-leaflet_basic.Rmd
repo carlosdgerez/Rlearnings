@@ -1,0 +1,156 @@
+---
+title: "Leaflet Day 1: COVID Class Activity"
+author: "David Palmer"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:  
+    keep_md: true
+    toc: true
+    toc_float: true
+    code_folding: hide
+    fig_height: 6
+    fig_width: 12
+    fig_align: 'center'
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, error = TRUE)
+```
+
+```{r load_libraries, include=FALSE}
+# Use this R-Chunk to load all your libraries!
+#install.packages("tidyverse") # run this line once in console to get package
+library(USAboundaries)
+library(tidyverse)
+library(leaflet)
+
+```
+
+Practice Using Leaflet for Interactive Maps 
+
+- We will use leaflet to create interactive maps of the cumulative confirmed cases of COVID-19.
+- First, we will plot the cities with the most confirmed cases.
+
+Note, rather than doing copying and pasting, you may learn more by actually typing things out. This will force your mind to actually read over and digest the syntax.
+
+Read in the COVID data. Replace the stars with the last date in the dataset or a date of your choice using the format m/d/y. (For example, March 9th, 2021 would be 3/9/21). This will give us a column called "confirmed" that contains the cumulative confirmed cases up to that date. 
+
+```{r load_data}
+# Use this R-Chunk to import all your datasets!
+covid <- read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv") %>% 
+  
+  rename(confirmed = `2/29/20`) #replace the stars with the most recent date in the dataset (i.e. the last column)
+```
+
+Take a minute to look at the data and understand it's structure.
+
+## Plotting the Top Cities
+
+We will plot just a few cities that had the most COVID cases (cumulative). You get to decide how many cities to plot. (I'd recommend somewhere between 20 and 40). The code in the next chunk selects just those cities and stores it in the a new dataset.
+
+Don't forget to fill in the other blank in the code below.
+
+```{r tidy_data}
+# Use this R-Chunk to clean & wrangle your data!
+# dont know yet why this doesnt work 
+covid_top_cities <- covid %>% 
+  slice_max(confirmed) %>% 
+  dplyr::select(confirmed, everything()) #This line reorders the columns so that `confirmed` is first, followed by everything else
+
+
+covid_top_cities <- covid %>% arrange(desc(confirmed)) %>% top_n(35) %>% dplyr::select(confirmed, everything())
+
+#version
+```
+
+Now create a plot with a marker placed in the location of each of the top cities.
+Note the use of the ~ in order to reference a column name.
+
+```{r}
+leaflet(data=covid_top_cities) %>% addTiles() %>% 
+  addMarkers(lng = ~Long_, lat = ~Lat)
+```
+
+Alternatively, you can change the underlying tiles of the base map to something provided by a third-party. Type the first three letters in the blank to use the auto-fill feature to find an option you like (they don't all work because some require registration with the third-party). You can preview the tile maps and their names: http://leaflet-extras.github.io/leaflet-providers/preview/index.html. 
+
+Take a couple of minutes to play with different third-party tiles and find one that you like or that is unique. 
+
+```{r}
+leaflet(data = covid_top_cities) %>% addProviderTiles(providers$Esri.NatGeoWorldMap) %>% 
+  addMarkers(lng = ~Long_, lat = ~Lat)
+```
+
+
+Consider the next chunk of code where we set some defaults for the map. What is this setView() doing and what values should you put in the blanks?
+
+```{r}
+leaflet(data=covid_top_cities) %>% addTiles() %>% 
+  setView(lng = -97, lat = 38, zoom = 3) %>% 
+  addMarkers(lng = ~Long_, lat = ~Lat)
+```
+
+Let's add labels to the markers so we know the name of the city and the cumulative # of confirmed cases. In addition to blanks, this code has 3 errors in it. One will prevent the code from running, the others are just mistakes. Can you find and correct them?
+
+```{r plot_data}
+# Use this R-Chunk to plot & visualize your data!
+leaflet(data=covid_top_cities) %>% addTiles() %>% 
+  setView(lng = -97, lat = 38, zoom = 4) %>%  
+  addMarkers(lng = ~Long_, lat = ~Lat, label = paste(covid_top_cities$Admin2, "confirmed" , "=", covid_top_cities$confirmed))
+
+```
+
+## Circles on the map
+
+Instead of markers we would like to use circles on the map. Let's encode the number of cases into the size of the circles.
+
+```{r}
+leaflet(data=covid_top_cities) %>% addTiles() %>% 
+  setView(lng = -99, lat = 40, zoom = 4) %>% 
+  addCircles(lng = ~Long_, lat = ~Lat, 
+        radius = ~sqrt(confirmed)* 200000,
+        label = ~paste(covid_top_cities$Admin2, "confirmed" , "=", covid_top_cities$confirmed))
+```
+
+
+In addition to circle size, we will encode the cumulative confirmed case count into the color of the circle. This is not as simple and straight forward as one would like. It is explained here: https://rstudio.github.io/leaflet/colors.html
+
+First the set-up
+```{r}
+pal<-colorNumeric(palette = c("yellow", "red"), domain = covid_top_cities$confirmed/10)
+
+pal #this is to see what pal contains/is
+```
+
+Take the time to answer the following questions about the above line of code:
+
+- What is the domain argument providing? What is it used for?
+- Why are we dividing the confirmed cases by 10? (try the plot without dividing it to see)
+- What is pal?
+
+Now to actually create the plot. **Can you find the 2 errors?**
+
+```{r}
+leaflet(data=covid_top_cities) %>% addTiles() %>% 
+  setView(lng = -99, lat = 40, zoom = 4) %>% 
+  addCircles(lng = ~Long_, lat = ~Lat, 
+             radius = ~covid_top_cities$confirmed/10,
+             label = ~paste0(Admin2," County = ", covid_top_cities$confirmed , " confirmed cases"), 
+             fillOpacity = .1,
+             color = ~pal(covid_top_cities$confirmed/10),  #color is the border color
+             fillColor =  pal(covid_top_cities$confirmed)) #notice the domain above must match exactly what is fed to pal
+```
+
+
+## Big Data and Spatial Data
+
+Pause to read the following article: Spatial Data Often Becomes Big Data
+https://blogs.esri.com/esri/arcgis/2017/10/17/strategies-to-effectively-display-large-amounts-of-data-in-web-apps/
+
+Identify the 4 stratagies for displaying map data. Consider recording them in your Readme.md
+
+1. Display data that is important
+2. Aggregate the data into equal-sized hexagons (hexbins) to visualize patterns
+3. Use scale visibility and/or multiscale rendering to show information when it is visually helpful.
+4. Use clustering to group points into one symbol and apply Smart Mapping Styles
+
+Time permitting, read through the [Leaflet guide](https://rstudio.github.io/leaflet/) and find 1-2 additional map features you would like to play with.

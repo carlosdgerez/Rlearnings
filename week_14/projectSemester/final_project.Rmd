@@ -1,0 +1,1787 @@
+---
+title: "Semester Project"
+author: "Carlos Gerez"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:  
+    keep_md: true
+    toc: true
+    toc_float: true
+    code_folding: hide
+    fig_height: 6
+    fig_width: 12
+    fig_align: 'center'
+    
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r load_libraries, include=FALSE}
+# Use this R-Chunk to load all your libraries!
+#install.packages("tidyverse") # run this line once in console to get package
+#install.packages("tidyverse") # run this line once in console to get package
+#install.packages("gganimate")
+#install.packages("gifski")
+#install.packages("av")
+#install.packages("magick")
+library(tidyverse)
+library(rio)
+library("ggthemes")
+library(USAboundaries)
+library(sf, warn.conflicts = F)
+library(leaflet)
+
+library(gganimate)
+library(gifski)
+library(av)
+library(stringr)
+
+library(geofacet)
+library(ggrepel)
+library(magick)
+```
+
+```{r load_data}
+# Use this R-Chunk to import all your datasets!
+########################################### FIRST DATA SET ###########################################
+# FRom https://www.cdc.gov/obesity/data/prevalence-maps.html
+
+# CENTER FOR DISEASE CONTROL AND PREVENTION USA information on obesity  - Data Source: Behavioral Risk Factor Surveillance System (BRFSS)
+#################################### Obesity by state #########################
+
+# LINK : https://www.cdc.gov/obesity/data/maps/2021/Obesity-prevalence-by-state-2021.csv
+
+# TASK MAP THIS FILE TO A LEAFLET MAP OF THE STATES TO SHOW THE ACTUAL STATE OF OBESITY
+
+path <-  "https://www.cdc.gov/obesity/data/maps/2021/Obesity-prevalence-by-state-2021.csv"
+
+
+
+
+data_obesity_report <- import(path)
+
+#names(data_obesity_report)
+data_obesity_report <- as.data.frame(data_obesity_report)
+
+
+# in case I had to save the dataset
+#   write.csv(data_obesity, "week_14/projectSemester/data_obesity.csv")
+#   datatest <- read_csv("week_14/projectSemester/data_obesity.csv")
+######################################################################################################################
+
+
+
+selector1 <- c("YearStart","LocationAbbr","LocationDesc","Data_Value", "GeoLocation_Long","GeoLocation_Lat")
+
+path <- "data_obesity_2011.csv"
+
+data_obesity_2011 <- read_csv(path)
+
+data_obesity_2011 <- data_obesity_2011 %>% select( "YearStart","LocationAbbr","LocationDesc","Data_Value", "GeoLocation_Long","GeoLocation_Lat")
+
+
+get_obesity <- function(path, selector1){
+  
+  file <- read_csv(path)
+
+  file <- file %>% select( selector1)
+
+}
+
+
+
+
+path <- "data_obesity_2012.csv"
+
+data_obesity_2012 <- get_obesity(path,selector1)
+
+
+
+
+
+path <- "data_obesity_2013.csv"
+
+data_obesity_2013 <- get_obesity(path,selector1)
+
+
+
+
+path <- "data_obesity_2014.csv"
+
+data_obesity_2014 <-  get_obesity(path,selector1)
+
+
+
+
+
+path <- "data_obesity_2015.csv"
+
+data_obesity_2015 <-  get_obesity(path,selector1)
+
+
+
+
+path <- "data_obesity_2016.csv"
+
+data_obesity_2016 <-  get_obesity(path,selector1)
+
+
+
+
+
+
+path <- "data_obesity_2017.csv"
+
+data_obesity_2017 <-  get_obesity(path,selector1)
+
+
+
+
+
+path <- "data_obesity_2018.csv"
+
+data_obesity_2018 <-  get_obesity(path,selector1)
+
+
+
+
+
+path <- "data_obesity_2019.csv"
+
+data_obesity_2019 <-  get_obesity(path,selector1)
+
+
+
+
+
+
+path <- "data_obesity_2020.csv"
+
+data_obesity_2020 <-  get_obesity(path,selector1)
+
+
+
+
+
+
+
+
+path <- "data_obesity_2021.csv"
+
+data_obesity_2021 <-  get_obesity(path,selector1)
+
+################# GET the data for the us state graph grow of obesity by year
+
+
+data_obesity_state <- rbind(data_obesity_2011, 
+                            data_obesity_2012, 
+                            data_obesity_2013, 
+                            data_obesity_2014, 
+                            data_obesity_2015, 
+                            data_obesity_2016,
+                            data_obesity_2017,
+                            data_obesity_2018,
+                            data_obesity_2019, 
+                            data_obesity_2020, 
+                            data_obesity_2021) %>%  filter(LocationAbbr == "US") 
+
+################################### Get the first set data for the animation of by state data obesity vs poverty by year
+
+data_obesity <-  rbind(data_obesity_2011, 
+                       data_obesity_2012,
+                       data_obesity_2013,
+                       data_obesity_2014, 
+                       data_obesity_2015, 
+                       data_obesity_2016, 
+                       data_obesity_2017, 
+                       data_obesity_2018, 
+                       data_obesity_2019, 
+                       data_obesity_2020, 
+                       data_obesity_2021) %>%  filter(LocationAbbr != "US") %>% 
+                                               select(c(-5,-6))
+
+
+
+
+######################################### SECOND SET ##################################################
+
+# THis set have the data for the first graph
+####################################################################################################
+
+########################## State-level Prevalence of Food Insecurity ################################
+
+# Data from USDA Department of Agriculture  
+# This is a xlsx data file that I downloaded from the source and convert to csv for a fast work.
+# https://www.ers.usda.gov/media/rbmpu1zi/mapdata2021.xlsx
+
+# DEFINITIONS : 
+ 
+#> Food insecure—At times during the year, these households were uncertain of having or unable to acquire enough
+#>  food to meet the needs of all their members because they had insufficient money or other resources for food.
+#> Food-insecure households include those with low food security and very low food security.
+#> Low food security—Households reduced the quality, variety, and desirability of their diets, 
+#> but the quantity of food intake and normal eating patterns were not substantially disrupted.
+ 
+
+#>Very low food security—In these food-insecure households, normal eating patterns of one or 
+# more household members were disrupted and food intake was reduced at times during the year because they had insufficient money or other resources for food. 
+
+#> Very low food security—At times during the year, eating patterns of one or more household
+#>  members were disrupted and food intake reduced because the household lacked money and other resources for food.
+ 
+ 
+path <- "mapdata2021.csv"
+
+# have some character that need this encoding to be read it in the first column name. 
+data_foodInsecurity <- read_csv(path,locale = locale(encoding = "latin1"))
+
+#names(data_foodInsecurity)
+
+data_foodInsecurity <-  data_foodInsecurity %>% rename(
+  "average" = "Average2019\u009620211" ,
+  "low_security" = "food_securityPrevalencepercent",
+  "very_low_security" = "veryLowSecurityPrevalencepercent"
+)
+
+
+
+#################################### THIRD SET ##################################################
+ #  POVERTY rates DATASET PROVIDES an historic inside in the evolution of poverty in USA
+# THis dataset have information on poverty in county level from 
+ # FROM https://www2.census.gov/library/visualizations/time-series/demo/Poverty-Rates-by-County-1960-2010.xlsm
+
+# Caution has FIPS for each county to map 
+
+path <-  "Poverty-Rates-by-County-1960-2010.csv"
+
+
+
+
+
+data_poverty_1960 <- read_csv(path, skip = 1)
+
+# reduce number of columns
+data_poverty_1960 <- data_poverty_1960 %>% select(1:22)
+
+
+# filter just the states, fix column names and pivot longer
+poverty_hist <- data_poverty_1960 %>%
+                        filter(County == "State Total") %>%
+                        select(c(1:10))
+
+colnames(poverty_hist)[5:10] <- as.numeric(str_sub(colnames(poverty_hist)[5:10], -4, -1))
+
+poverty_hist <- poverty_hist %>% pivot_longer(c(5:10), values_to = "percents", names_to = "years") %>% select(-1)
+
+red_line_hist <- poverty_hist %>% filter(years > 1990) 
+
+
+
+# filter the total of the country, fix columns names and pivot longer
+
+poverty_hist_USA <-  data_poverty_1960 %>% filter(State == "United States") %>% select(c(3:10)) 
+
+colnames(poverty_hist_USA)[3:8] <- str_sub(colnames(poverty_hist_USA)[3:8], -4, -1)
+
+poverty_hist_USA <- poverty_hist_USA %>% pivot_longer(c(3:8), values_to = "percents", names_to = "years")
+
+poverty_hist$FIPS <- poverty_hist$FIPS %>% as.character() # convert this column for the join with shapes from states
+
+
+
+####################################### Obesity rates from 1960 to 2010 ###########################
+
+# this data come from https://usafacts.org/articles/obesity-rate-nearly-triples-united-states-over-last-50-years/
+
+path <-  "obesity_1960.csv"
+
+obesity_1960 <- read_csv(path)
+
+
+obesity_1960 <- obesity_1960 %>% pivot_longer(c(2,3), names_to = "level", values_to = "percents")
+
+
+############################ Get the geometrys for the states ###############
+# not necesary yet
+
+#states <-  us_states()
+
+#power_hist <- poverty_hist %>% full_join(
+#  states, by = c("FIPS" = "statefp")
+#)
+
+
+
+
+
+###################################### A  fourth SET ################################
+#   Direct information on poverty from the Census Bureau
+
+
+
+# increase the buffer 
+#Sys.setenv("VROOM_CONNECTION_SIZE" = 131072 * 4)
+
+# increase the number of columns in viewer 
+# rstudioapi::writeRStudioPreference("data_viewer_max_columns", 1000L)
+
+
+
+
+get_poverty <- function(path, selector, year){
+  
+  file <- read_csv(path) # read the file
+  
+  file <- file %>% select(selector)    # select the column I need with a selecting sequence plus the first column.
+
+  file <- file[1,]  # select the first row
+  
+  helper_list <- colnames(file) %>% str_split("!!", simplify = TRUE) # extract the names of the states and put it as headers in the columns
+  
+  colnames(file) <- helper_list[,1]
+
+  file <- file %>% pivot_longer(colnames(file))  # pivot to have the list of states and their percents. 
+
+  file$value <- file$value %>% parse_number() # Change the values from character to integers with parse .
+  file <- file %>% 
+    mutate(year = year)
+  return(file) 
+}
+
+
+selector <- seq(from = 6, to = 312, by = 6) #this follow the column sequence position of the columns I want
+
+
+
+
+path <- "poverty_2011.csv"
+year <- 2011
+poverty_2011  <- get_poverty(path, selector, year)
+
+path <- "poverty_2012.csv"
+year <- 2012
+poverty_2012  <- get_poverty(path, selector, year)
+
+path <- "poverty_2013.csv"
+year <- 2013
+poverty_2013  <- get_poverty(path, selector, year)
+
+path <- "poverty_2014.csv"
+year <- 2014
+poverty_2014  <- get_poverty(path, selector, year)
+
+path <- "poverty_2015.csv"
+year <- 2015
+poverty_2015  <- get_poverty(path, selector, year)
+
+path <- "poverty_2016.csv"
+year <- 2016
+poverty_2016  <- get_poverty(path, selector, year)
+
+path <- "poverty_2017.csv"
+year <- 2017
+poverty_2017  <- get_poverty(path, selector, year)
+
+path <- "poverty_2018.csv"
+year <- 2018
+poverty_2018  <- get_poverty(path, selector, year)
+
+path <- "poverty_2019.csv"
+year <- 2019
+poverty_2019  <- get_poverty(path, selector, year)
+
+path <- "poverty_2020.csv"
+year <- 2020
+poverty_2020  <- get_poverty(path, selector, year)
+
+path <- "poverty_2021.csv"
+year <- 2021
+poverty_2021  <- get_poverty(path, selector, year)
+
+
+data_poverty <- rbind(poverty_2011, 
+                      poverty_2012, 
+                      poverty_2013, 
+                      poverty_2014,
+                      poverty_2015,
+                      poverty_2016,
+                      poverty_2017,
+                      poverty_2018, 
+                      poverty_2019, 
+                      poverty_2020, 
+                      poverty_2021)
+
+
+
+##################################################################################################################
+
+# this part reads the files with the USA poverty data and wrangle to get just the totals by years from 2011 to 2021
+
+
+selector2 <- 6
+
+get_national_poverty <- function(path, selector2, year){
+  
+  file <- read_csv(path) # read the file
+  
+  file <- file %>% select(selector2)    # select the column I need with a selecting sequence plus the first column.
+
+  file <- file[1,]  # select the first row
+  
+
+  file <- file %>% 
+    mutate(year = year,
+           level = "Poverty") %>% 
+    rename(percents = 'United States!!Percent below poverty level!!Estimate')
+  
+  file$percents <- file$percents %>% parse_number() # Change the values from character to integers with parse .
+ 
+  return(file) 
+}
+
+
+################# get the information  Work latter in a function with a loop over a list
+
+path <- "poverty_N_2011.csv"
+year <-  2011
+poverty_N_2011 <- get_national_poverty(path,selector2,year)
+
+
+path <- "poverty_N_2012.csv"
+year <-  2012
+poverty_N_2012 <- get_national_poverty(path,selector2,year)
+
+
+path <- "poverty_N_2013.csv"
+year <-  2013
+poverty_N_2013 <- get_national_poverty(path,selector2,year)
+
+
+path <- "poverty_N_2014.csv"
+year <-  2014
+poverty_N_2014 <- get_national_poverty(path,selector2,year)
+
+path <- "poverty_N_2015.csv"
+year <-  2015
+poverty_N_2015 <- get_national_poverty(path,selector2,year)
+
+path <- "poverty_N_2016.csv"
+year <-  2016
+poverty_N_2016 <- get_national_poverty(path,selector2,year)
+
+path <- "poverty_N_2017.csv"
+year <-  2017
+poverty_N_2017 <- get_national_poverty(path,selector2,year)
+
+
+path <- "poverty_N_2018.csv"
+year <-  2018
+poverty_N_2018 <- get_national_poverty(path,selector2,year)
+
+path <- "poverty_N_2019.csv"
+year <-  2019
+poverty_N_2019 <- get_national_poverty(path,selector2,year)
+
+
+path <- "poverty_N_2020.csv"
+year <-  2020
+poverty_N_2020 <- get_national_poverty(path,selector2,year)
+
+
+path <- "poverty_N_2021.csv"
+year <-  2021
+poverty_N_2021 <- get_national_poverty(path,selector2,year)
+
+
+
+data_poverty_N <- rbind(poverty_N_2011, 
+                      poverty_N_2012, 
+                      poverty_N_2013, 
+                      poverty_N_2014,
+                      poverty_N_2015,
+                      poverty_N_2016,
+                      poverty_N_2017,
+                      poverty_N_2018, 
+                      poverty_N_2019, 
+                      poverty_N_2020, 
+                      poverty_N_2021)
+
+
+
+
+
+```
+
+### Question:
+### Does exist a relation between the obesity increasing in USA and the level of insecurity? Is that related to economic factors or others that generate insecurity?  
+
+During the last decade, the level of obesity has exploded among Americans. The trend doesn't seem to decay, just continue to increase.  
+I get data from the [United States Census Bureau](https://www.census.gov/) with information about poverty levels from 1960 to today. I also use another data set from [CDC, Centers for Disease Control and Prevention](https://www.cdc.gov/obesity/data/adult.html), with data about obesity rates from the [BRFSS](https://www.cdc.gov/brfss/) survey system. This collected data came by decade from 1960 to 2010, and by year from 2011 to 2021.  
+The obesity rates before 2010 cannot be directly compared with the data from 2011, due to changes in the survey method.
+ 
+
+
+
+## Data Wrangling
+
+```{r tidy_data}
+# Use this R-Chunk to clean & wrangle your data!
+
+
+names(data_poverty_1960) <- gsub(" ","_", colnames(data_poverty_1960)) # Fixing names in data poverty
+#names(data_poverty_1960)
+
+
+
+# start to get a joint dataset for the animations
+
+
+animation <- data_obesity %>% inner_join(data_poverty, by = c("YearStart" = "year", "LocationDesc" = "name")) %>% 
+  rename(perc_obesity = Data_Value,
+         perc_poverty = value)
+
+#length(unique(animation$LocationAbbr))
+
+
+animation[animation == "~"] <- "28.4"
+
+animation$perc_obesity <- animation$perc_obesity %>% parse_number()
+
+
+
+
+################################################### Check if necesary
+data_obesity_state <- data_obesity_state %>%  select(Data_Value,YearStart, LocationAbbr) %>% 
+                        rename(percents = Data_Value,
+                               year = YearStart,
+                               level = LocationAbbr)
+
+
+
+
+data_obesity_state$percents <- data_obesity_state$percents %>% as.numeric()
+
+obesity_trend <- data_obesity_state %>% mutate(level = " Obesity") %>% rbind(data_poverty_N)
+labeler4 <- obesity_trend %>% filter(year == 2021)
+####################################################################
+
+```
+
+## Exploration
+If we look the charts of poverty by year compared with the trends in obesity we can see some particularities.  
+When we plot the more significant crisis of the last years we can see how the levels of obesity varies from that time point.  
+
+
+```{r plot_data1}
+# Use this R-Chunk to plot & visualize your data!
+
+################################## Chart of Obesity and poverty from 1960 ########################################
+
+new_palette <- c("#DE9A55", "#D43535","#19A7CE")
+poverty_hist_USA <- poverty_hist_USA %>%  rename(
+  level = State) %>% 
+  mutate(
+    year = as.numeric(years),
+    level = recode("Poverty",
+                          "United States" = "Poverty")
+  )
+
+
+
+
+labeler <- poverty_hist_USA %>% filter(years == 2010)
+
+labeler2 <- obesity_1960 %>%  filter(year == 2010)
+
+ggplot(data = obesity_1960, aes(year, percents, color = level)) +
+#  geom_point() +
+  geom_line(size = 2) +
+  geom_line(data = poverty_hist_USA, size = 2) +
+  geom_text(label = "Recesion 1980's", x = 1980, y = 41, color = "#A03232") +
+  geom_text(label = "The Great \nRecession", x = 2008, y = 40, color = "#A03232") +
+  geom_text(label = "9/11", x = 2001, y = 41, color = "#A03232") +
+  annotate('rect', xmin = 2008, xmax = 2009, ymin = 0, ymax = 40, alpha = .2, fill = 'red') +
+  annotate('rect', xmin = 1981, xmax = 1982, ymin = 0, ymax = 40, alpha = .2, fill = 'red') +
+  annotate('rect', xmin = 2001, xmax = 2002, ymin = 0, ymax = 40, alpha = .2, fill = 'red') +  
+   labs(x = "", 
+       y = "",
+       title = "Poverty and obesity trends",
+       subtitle = "", 
+       color = NULL) +
+  theme(plot.title=element_text(size=18),
+        legend.text = element_text(size = 18)) +
+  scale_y_continuous(labels = scales::percent_format(scale = 1) ) +
+  scale_color_manual(values = new_palette) +
+  theme_economist()+
+    geom_text_repel(data = labeler, aes(label = level), nudge_x = 2) +
+    geom_text_repel(data = labeler2, aes(label = level), nudge_x = 2.5, nudge_y = -1) +
+  guides(color = "none") 
+  #theme(panel.background = element_rect(fill = "salmon",
+   #                             colour = "white"))
+
+
+####################################### Chart of obesity and poverty 2011 to 2021 ########################
+
+
+ggplot(data = obesity_trend, aes(year, percents, color = level)) +
+
+  geom_line(size = 2) +
+
+  geom_text(label = "COVID", x = 2020, y = 36, color = "#A03232") +
+
+  annotate('rect', xmin = 2019, xmax = 2021, ymin = 0, ymax = 35, alpha = .2, fill = 'red') +
+
+   labs(x = "", 
+       y = "",
+       title = "Poverty and obesity trends",
+       subtitle = "", 
+       color = NULL) +
+   scale_y_continuous(labels = scales::percent_format(scale = 1) ) +
+  scale_x_continuous(breaks = c(2011:2021)) +
+   theme(plot.title=element_text(size=18),
+         legend.text = element_text(size = 18)) +
+  theme_economist() +
+    geom_text_repel(data = labeler4, aes(label = level), nudge_x = 0.3) +
+  scale_color_manual(values = new_palette) +
+  guides(color = "none")
+```
+### Looking for patterns.  
+When we plot the poverty and obesity country levels over the years from 2011 to 2021 we see that some states tend to get higher levels of obesity as well as higher levels of poverty. Those tendencies are clear in Mississippi, Alabama, and Louisiana for example. By the contrary Colorado shows lower levels than the nationals. This can be due to a correlation with a sense of insecurity that leads to poor nutritious choices, or a lack of opportunity to get balanced food as well as free time to exercise.
+```{r plot_data5}
+######################################## Map of obesity by year 2011 to 2021 #########################################
+#states
+states <-  us_states()
+data_obesity <- data_obesity %>% inner_join(states, by = c("LocationAbbr" = "state_abbr"))
+data_obesity$Data_Value <- as.numeric(data_obesity$Data_Value)
+data_obesity <- st_as_sf(data_obesity)
+data_obesity <- data_obesity %>% select(c(1:4,16))
+
+
+data_obesity <- data_obesity %>% rename(state = LocationDesc,
+                        year = YearStart,
+                        abbr = LocationAbbr,
+                        value = Data_Value)
+
+
+data_obesity <- data_obesity %>% pivot_wider(names_from = "year", values_from = "value")
+
+pal11 <- colorNumeric(
+  palette = "Blues",
+  domain = data_obesity$'2011'
+)
+
+pal12 <- colorNumeric(
+  palette = "Blues",
+  domain = data_obesity$'2012'
+)
+
+
+
+pal13 <- colorNumeric(
+  palette = "Blues",
+  domain = data_obesity$'2013'
+)
+
+pal14 <- colorNumeric(
+  palette = "Blues",
+  domain = data_obesity$'2014'
+)
+
+
+pal15 <- colorNumeric(
+  palette = "Blues",
+  domain = data_obesity$'2015'
+)
+
+pal16 <- colorNumeric(
+  palette = "Blues",
+  domain = data_obesity$'2016'
+)
+
+
+
+pal17 <- colorNumeric(
+  palette = "Blues",
+  domain = data_obesity$'2017'
+)
+
+pal18 <- colorNumeric(
+  palette = "Blues",
+  domain = data_obesity$'2018'
+)
+
+
+
+pal19 <- colorNumeric(
+  palette = "Blues",
+  domain = data_obesity$'2019'
+)
+
+pal20 <- colorNumeric(
+  palette = "Blues",
+  domain = data_obesity$'2020'
+)
+
+pal21 <- colorNumeric(
+  palette = "Blues",
+  domain = data_obesity$'2021'
+)
+
+
+
+labels11 <- sprintf(
+  "<strong> %s</strong><br/> %g percent obesity<sup></sup>",
+  data_obesity$state, data_obesity$'2011'
+) %>% lapply(htmltools::HTML)
+
+
+labels12 <- sprintf(
+  "<strong>%s</strong><br/>%g percent obesity<sup></sup>",
+  data_obesity$state, data_obesity$'2012'
+) %>% lapply(htmltools::HTML)
+
+
+
+
+labels13 <- sprintf(
+  "<strong> %s</strong><br/> %g percent obesity<sup></sup>",
+  data_obesity$state, data_obesity$'2013'
+) %>% lapply(htmltools::HTML)
+
+
+labels14 <- sprintf(
+  "<strong>%s</strong><br/>%g percent obesity<sup></sup>",
+  data_obesity$state, data_obesity$'2014'
+) %>% lapply(htmltools::HTML)
+
+
+
+labels15 <- sprintf(
+  "<strong> %s</strong><br/> %g percent obesity<sup></sup>",
+  data_obesity$state, data_obesity$'2015'
+) %>% lapply(htmltools::HTML)
+
+
+labels16 <- sprintf(
+  "<strong>%s</strong><br/>%g percent obesity<sup></sup>",
+  data_obesity$state, data_obesity$'2016'
+) %>% lapply(htmltools::HTML)
+
+
+
+labels17 <- sprintf(
+  "<strong> %s</strong><br/> %g percent obesity<sup></sup>",
+  data_obesity$state, data_obesity$'2017'
+) %>% lapply(htmltools::HTML)
+
+
+labels18 <- sprintf(
+  "<strong>%s</strong><br/>%g percent obesity<sup></sup>",
+  data_obesity$state, data_obesity$'2018'
+) %>% lapply(htmltools::HTML)
+
+
+labels19 <- sprintf(
+  "<strong> %s</strong><br/> %g percent obesity<sup></sup>",
+  data_obesity$state, data_obesity$'2019'
+) %>% lapply(htmltools::HTML)
+
+
+labels20 <- sprintf(
+  "<strong>%s</strong><br/>%g percent obesity<sup></sup>",
+  data_obesity$state, data_obesity$'2020'
+) %>% lapply(htmltools::HTML)
+
+
+labels21 <- sprintf(
+  "<strong> %s</strong><br/> %g percent obesity<sup></sup>",
+  data_obesity$state, data_obesity$'2021'
+) %>% lapply(htmltools::HTML)
+
+
+
+
+
+titles11 <- sprintf(
+  "<strong>Obesity Levels</strong><br/>(Percent)<br/> <strong></strong><sup></sup>"
+ 
+) %>% lapply(htmltools::HTML)
+
+titles12 <- sprintf(
+  "<strong>Obesity Levels</strong><br/>(Percent)<br/> <strong></strong><sup></sup>"
+  
+) %>% lapply(htmltools::HTML)
+
+
+
+
+
+leaflet() %>% 
+        addTiles() %>% 
+  
+        setView(lat = 37.58 , lng = -103.46, zoom = 3.5) %>%  # center of the map and zoom
+  
+  
+        addPolygons(data = data_obesity,
+                    group = "2011",
+                    fillColor = ~pal11(data_obesity$'2011'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels11,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+                    addLegend(data = data_obesity, values = ~data_obesity$'2011',group = "2011", className = "info legend 2011", 
+                    position =  "bottomleft",
+                    title = titles11,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal11) %>% 
+  
+
+                    addPolygons(data = data_obesity,
+                    group = "2012",
+                    fillColor = ~pal12(data_obesity$'2012'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels12,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+                    addLegend(data = data_obesity, values = ~data_obesity$'2012',group = "2012", className = "info legend 2012", 
+                    position =  "bottomleft",
+                    title = titles11,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal12) %>% 
+
+                    addPolygons(data = data_obesity,
+                    group = "2013",
+                    fillColor = ~pal13(data_obesity$'2013'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels13,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+                    addLegend(data = data_obesity, values = ~data_obesity$'2013',group = "2013", className = "info legend 2013", 
+                    position =  "bottomleft",
+                    title = titles11,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal13) %>% 
+  
+
+                    addPolygons(data = data_obesity,
+                    group = "2014",
+                    fillColor = ~pal14(data_obesity$'2014'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels14,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+  
+                    addLegend(data = data_obesity, values = ~data_obesity$'2014',group = "2014", className = "info legend 2014", 
+                    position =  "bottomleft",
+                    title = titles11,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal14) %>% 
+  
+                    addPolygons(data = data_obesity,
+                    group = "2015",
+                    fillColor = ~pal15(data_obesity$'2015'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels15,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+  
+                    addLegend(data = data_obesity, values = ~data_obesity$'2015',group = "2015", className = "info legend 2015", 
+                    position =  "bottomleft",
+                    title = titles11,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal15) %>% 
+  
+
+                    addPolygons(data = data_obesity,
+                    group = "2016",
+                    fillColor = ~pal16(data_obesity$'2016'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels16,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+                    addLegend(data = data_obesity, values = ~data_obesity$'2016',group = "2016", className = "info legend 2016", 
+                    position =  "bottomleft",
+                    title = titles11,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal16) %>% 
+  
+                    addPolygons(data = data_obesity,
+                    group = "2017",
+                    fillColor = ~pal17(data_obesity$'2017'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels17,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+                    addLegend(data = data_obesity, values = ~data_obesity$'2017',group = "2017", className = "info legend 2017", 
+                    position =  "bottomleft",
+                    title = titles11,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal17) %>% 
+  
+
+                    addPolygons(data = data_obesity,
+                    group = "2018",
+                    fillColor = ~pal18(data_obesity$'2018'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels18,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+                    addLegend(data = data_obesity, values = ~data_obesity$'2018',group = "2018", className = "info legend 2018", 
+                    position =  "bottomleft",
+                    title = titles11,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal18) %>% 
+  
+  
+                    addPolygons(data = data_obesity,
+                    group = "2019",
+                    fillColor = ~pal19(data_obesity$'2019'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels19,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+  
+                    addLegend(data = data_obesity, values = ~data_obesity$'2019',group = "2019", className = "info legend 2019", 
+                    position =  "bottomleft",
+                    title = titles11,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal19) %>% 
+
+                    addPolygons(data = data_obesity,
+                    group = "2020",
+                    fillColor = ~pal20(data_obesity$'2020'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels20,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+                    addLegend(data = data_obesity, values = ~data_obesity$'2020',group = "2020", className = "info legend 2020", 
+                    position =  "bottomleft",
+                    title = titles11,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal20) %>% 
+  
+                    addPolygons(data = data_obesity,
+                    group = "2021",
+                    fillColor = ~pal21(data_obesity$'2021'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels21,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+                    addLegend(data = data_obesity, values = ~data_obesity$'2021',group = "2021", className = "info legend 2021", 
+                    position =  "bottomleft",
+                    title = titles11,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal21) %>% 
+  
+                    # This are the controls of the chart   
+  addLayersControl(
+    baseGroups = c("2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"),
+
+    options = layersControlOptions(collapsed = FALSE) ) %>% 
+  
+                     htmlwidgets::onRender("
+      function(el, x) {
+         var updateLegend = function () {
+            var selectedGroup = document.querySelectorAll('input:checked')[0].nextSibling.innerText.substr(1);
+
+            document.querySelectorAll('.legend').forEach(a => a.hidden=true);
+            document.querySelectorAll('.legend').forEach(l => {
+               if (l.classList.contains(selectedGroup)) l.hidden=false;
+            });
+         };
+         updateLegend();
+         this.on('baselayerchange', el => updateLegend());
+      }"
+   )
+  
+  
+  
+
+###########################################################################################
+
+
+################################################# POVERTY by year 2011 to 2021 ########################
+usa <-  us_states()
+
+
+poverty <- data_poverty %>% rename(state = name)  %>% 
+                   inner_join(usa, by = c("state" = "state_name")) %>% 
+                   select(1,2,3,15) %>% pivot_wider(names_from = year,values_from = value)
+
+
+
+poverty <- st_as_sf(poverty)
+
+# Exclude Puerto Rico to have some balance in the colors.
+poverty <- poverty %>% filter(state != "Puerto Rico")
+
+pal11new <- colorNumeric(
+  palette = "Blues",
+  domain = poverty$'2011'
+)
+
+pal12new <- colorNumeric(
+  palette = "Blues",
+  domain = poverty$'2012'
+)
+
+
+
+pal13new <- colorNumeric(
+  palette = "Blues",
+  domain = poverty$'2013'
+)
+
+pal14new <- colorNumeric(
+  palette = "Blues",
+  domain = poverty$'2014'
+)
+
+
+pal15new <- colorNumeric(
+  palette = "Blues",
+  domain = poverty$'2015'
+)
+
+pal16new <- colorNumeric(
+  palette = "Blues",
+  domain = poverty$'2016'
+)
+
+
+
+pal17new <- colorNumeric(
+  palette = "Blues",
+  domain = poverty$'2017'
+)
+
+pal18new <- colorNumeric(
+  palette = "Blues",
+  domain = poverty$'2018'
+)
+
+
+
+pal19new <- colorNumeric(
+  palette = "Blues",
+  domain = poverty$'2019'
+)
+
+pal20new <- colorNumeric(
+  palette = "Blues",
+  domain = poverty$'2020'
+)
+
+pal21new <- colorNumeric(
+  palette = "Blues",
+  domain = poverty$'2021'
+)
+
+
+
+labels11new <- sprintf(
+  "<strong> %s</strong><br/> %g percent poverty<sup></sup>",
+  poverty$state, poverty$'2011'
+) %>% lapply(htmltools::HTML)
+
+
+labels12new <- sprintf(
+  "<strong>%s</strong><br/>%g percent poverty<sup></sup>",
+  poverty$state, poverty$'2012'
+) %>% lapply(htmltools::HTML)
+
+
+
+
+labels13new <- sprintf(
+  "<strong> %s</strong><br/> %g percent poverty<sup></sup>",
+  poverty$state, poverty$'2013'
+) %>% lapply(htmltools::HTML)
+
+
+labels14new <- sprintf(
+  "<strong>%s</strong><br/>%g percent poverty<sup></sup>",
+  poverty$state, poverty$'2014'
+) %>% lapply(htmltools::HTML)
+
+
+
+labels15new <- sprintf(
+  "<strong> %s</strong><br/> %g percent poverty<sup></sup>",
+  poverty$state, poverty$'2015'
+) %>% lapply(htmltools::HTML)
+
+
+labels16new <- sprintf(
+  "<strong>%s</strong><br/>%g percent poverty<sup></sup>",
+  poverty$state, poverty$'2016'
+) %>% lapply(htmltools::HTML)
+
+
+
+labels17new <- sprintf(
+  "<strong> %s</strong><br/> %g percent poverty<sup></sup>",
+  poverty$state, poverty$'2017'
+) %>% lapply(htmltools::HTML)
+
+
+labels18new <- sprintf(
+  "<strong>%s</strong><br/>%g percent poverty<sup></sup>",
+  poverty$state, poverty$'2018'
+) %>% lapply(htmltools::HTML)
+
+
+labels19new <- sprintf(
+  "<strong> %s</strong><br/> %g percent poverty<sup></sup>",
+  poverty$state, poverty$'2019'
+) %>% lapply(htmltools::HTML)
+
+
+labels20new <- sprintf(
+  "<strong>%s</strong><br/>%g percent poverty<sup></sup>",
+  poverty$state, poverty$'2020'
+) %>% lapply(htmltools::HTML)
+
+
+labels21new <- sprintf(
+  "<strong> %s</strong><br/> %g percent poverty<sup></sup>",
+  poverty$state, poverty$'2021'
+) %>% lapply(htmltools::HTML)
+
+
+
+
+
+titles11new <- sprintf(
+  "<strong>Poverty Levels</strong><br/>(Percent)<br/> <strong></strong><sup></sup>"
+ 
+) %>% lapply(htmltools::HTML)
+
+titles12 <- sprintf(
+  "<strong>Poverty Levels</strong><br/>(Percent)<br/> <strong></strong><sup></sup>"
+  
+) %>% lapply(htmltools::HTML)
+
+
+
+
+
+leaflet() %>% 
+        addTiles() %>% 
+  
+        setView(lat = 37.58 , lng = -103.46, zoom = 3.5) %>%  # center of the map and zoom
+  
+  
+        addPolygons(data = poverty,
+                    group = "2011",
+                    fillColor = ~pal11new(poverty$'2011'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels11new,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+                    addLegend(data = poverty, values = ~poverty$'2011',group = "2011", className = "info legend 2011", 
+                    position =  "bottomleft",
+                    title = titles11new,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal11new) %>% 
+  
+
+                    addPolygons(data = poverty,
+                    group = "2012",
+                    fillColor = ~pal12new(poverty$'2012'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels12new,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+                    addLegend(data = poverty, values = ~poverty$'2012',group = "2012", className = "info legend 2012", 
+                    position =  "bottomleft",
+                    title = titles11new,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal12new) %>% 
+
+                    addPolygons(data = poverty,
+                    group = "2013",
+                    fillColor = ~pal13new(poverty$'2013'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels13new,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+                    addLegend(data = poverty, values = ~poverty$'2013',group = "2013", className = "info legend 2013", 
+                    position =  "bottomleft",
+                    title = titles11new,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal13new) %>% 
+  
+
+                    addPolygons(data = poverty,
+                    group = "2014",
+                    fillColor = ~pal14new(poverty$'2014'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels14new,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+  
+                    addLegend(data = poverty, values = ~poverty$'2014',group = "2014", className = "info legend 2014", 
+                    position =  "bottomleft",
+                    title = titles11new,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal14new) %>% 
+  
+                    addPolygons(data = poverty,
+                    group = "2015",
+                    fillColor = ~pal15new(poverty$'2015'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels15new,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+  
+                    addLegend(data = poverty, values = ~poverty$'2015',group = "2015", className = "info legend 2015", 
+                    position =  "bottomleft",
+                    title = titles11new,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal15new) %>% 
+  
+
+                    addPolygons(data = poverty,
+                    group = "2016",
+                    fillColor = ~pal16new(poverty$'2016'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels16new,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+                    addLegend(data = poverty, values = ~poverty$'2016',group = "2016", className = "info legend 2016", 
+                    position =  "bottomleft",
+                    title = titles11new,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal16new) %>% 
+  
+                    addPolygons(data = poverty,
+                    group = "2017",
+                    fillColor = ~pal17new(poverty$'2017'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels17new,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+                    addLegend(data = poverty, values = ~poverty$'2017',group = "2017", className = "info legend 2017", 
+                    position =  "bottomleft",
+                    title = titles11new,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal17new) %>% 
+  
+
+                    addPolygons(data = poverty,
+                    group = "2018",
+                    fillColor = ~pal18new(poverty$'2018'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels18new,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+                    addLegend(data = poverty, values = ~poverty$'2018',group = "2018", className = "info legend 2018", 
+                    position =  "bottomleft",
+                    title = titles11new,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal18new) %>% 
+  
+  
+                    addPolygons(data = poverty,
+                    group = "2019",
+                    fillColor = ~pal19new(poverty$'2019'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels19new,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+  
+                    addLegend(data = poverty, values = ~poverty$'2019',group = "2019", className = "info legend 2019", 
+                    position =  "bottomleft",
+                    title = titles11new,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal19new) %>% 
+
+                    addPolygons(data = poverty,
+                    group = "2020",
+                    fillColor = ~pal20new(poverty$'2020'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels20new,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+                    addLegend(data = poverty, values = ~poverty$'2020',group = "2020", className = "info legend 2020", 
+                    position =  "bottomleft",
+                    title = titles11new,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal20new) %>% 
+  
+                    addPolygons(data = poverty,
+                    group = "2021",
+                    fillColor = ~pal21new(poverty$'2021'), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels21new,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+  
+                    addLegend(data = poverty, values = ~poverty$'2021',group = "2021", className = "info legend 2021", 
+                    position =  "bottomleft",
+                    title = titles11new,
+                    labFormat = labelFormat(digits = 3, 
+                    big.mark = ""), pal = pal21new) %>% 
+  
+                    # This are the controls of the chart   
+  addLayersControl(
+    baseGroups = c("2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"),
+
+    options = layersControlOptions(collapsed = FALSE) ) %>% 
+  
+                     htmlwidgets::onRender("
+      function(el, x) {
+         var updateLegend = function () {
+            var selectedGroup = document.querySelectorAll('input:checked')[0].nextSibling.innerText.substr(1);
+
+            document.querySelectorAll('.legend').forEach(a => a.hidden=true);
+            document.querySelectorAll('.legend').forEach(l => {
+               if (l.classList.contains(selectedGroup)) l.hidden=false;
+            });
+         };
+         updateLegend();
+         this.on('baselayerchange', el => updateLegend());
+      }"
+   )
+```
+## Patterns of insecurity.  
+The following chart display the percent of the population that had experienced food insecurity in the years 2019 and 2021. The definition of food insecurity according this survey is :  
+"At times during the year, these households were uncertain of having or unable to acquire enough food to meet the needs of all their members because  
+they had insufficient money or other resources for food.  
+Food-insecure households include those with low food security and very low food security.  
+Low food security—Households reduced the quality, variety, and desirability of their diets,  
+but the quantity of food intake and normal eating patterns were not substantially disrupted."[ From: USDA Economic Research Service of the U.S. Department of Agriculture.](https://www.ers.usda.gov/topics/food-nutrition-assistance/food-security-in-the-u-s/key-statistics-graphics/)  
+
+If we observe the patterns are rather similar than those seeing before. We cannot conclude yet that is a causal relation but we see some patterns that can justify a deeper study. A good question to ask now is if we can develope an indicator that can measure how security/ insecurity affects their food choices compunctions habits.
+
+```{r plot_data6}
+############################### Insecurity levels of food ####################################
+
+
+data_foodInsecurity_filtered <- data_foodInsecurity %>% filter(!State == "U.S.")
+
+data_foodInsecurity_filtered <- data_foodInsecurity_filtered %>% inner_join(usa, by = c("State" = "state_abbr"))
+
+
+data_foodInsecurity_filtered <-  st_as_sf(data_foodInsecurity_filtered)
+### first graph titles
+
+labels <- sprintf(
+  "<strong>%s</strong><br/>%g percent not altered eating patterns<sup></sup>",
+  data_foodInsecurity_filtered$name, data_foodInsecurity_filtered$low_security
+) %>% lapply(htmltools::HTML)
+
+
+labels2 <- sprintf(
+  "<strong>%s</strong><br/>%g percent altered eating patterns.<sup></sup>",
+  data_foodInsecurity_filtered$name, data_foodInsecurity_filtered$very_low_security
+) %>% lapply(htmltools::HTML)
+
+
+
+
+titles1 <- sprintf(
+  "<strong>Low Food Security Level</strong><br/>(Percent)<br/> <strong></strong><sup></sup>"
+ 
+) %>% lapply(htmltools::HTML)
+
+titles2 <- sprintf(
+  "<strong>Very Low Food Security Level</strong><br/>(Percent)<br/> <strong></strong><sup></sup>"
+  
+) %>% lapply(htmltools::HTML)
+
+pal1 <- colorNumeric(
+  palette = "Blues",
+  domain = data_foodInsecurity_filtered$low_security
+)
+
+pal2 <- colorNumeric(
+  palette = "Blues",
+  domain = data_foodInsecurity_filtered$very_low_security 
+)
+###############################
+#install.packages("oceanis")
+library(oceanis)
+################################
+
+leaflet() %>% 
+        addTiles() %>% 
+        setView(lat = 37.58 , lng = -103.46, zoom = 3.5) %>% 
+        addPolygons(data = data_foodInsecurity_filtered,
+                    group = "Eating patterns not disrupted",
+                    fillColor = ~pal1(data_foodInsecurity_filtered$low_security), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>% 
+      
+        addPolygons(data = data_foodInsecurity_filtered, 
+                    group = "Eating patterns disrupted",
+                    fillColor = ~pal2(data_foodInsecurity_filtered$very_low_security), 
+                    fillOpacity = 1, 
+                    color = "black", 
+                    stroke = T, 
+                    weight = 1, 
+#                   layerId = states$state_name, #this sets the click id, very important! when translated to shiny
+                    highlightOptions = highlightOptions(color = "black",
+                                                        weight = 3,
+                                                        bringToFront = TRUE),
+                    label = labels2,
+                    labelOptions = labelOptions(style = list("font-weight" = "normal",padding = "3px 8px"),
+                                              textsize = "15px",
+                                              direction = "auto")) %>%
+ # add_titre("Insecurity of having food.
+  #          (2019 - 2021 prevalescence Estimated From USDA)") %>% 
+   # This are the controls of the chart   
+  addLayersControl(
+    baseGroups = c("Eating patterns not disrupted","Eating patterns disrupted"),
+
+    options = layersControlOptions(collapsed = FALSE) )
+   
+#################################################### ANIMATIONS ####################################################
+
+
+
+animation <- animation %>%  filter(LocationDesc != "Puerto Rico")
+
+
+animated_total <- ggplot(animation, aes(perc_obesity, perc_poverty, colour = LocationDesc, label = LocationDesc)) +
+  geom_point(alpha = 0.7, show.legend = FALSE) +
+  guides(color = "none", size ="none", label = "none") +
+  geom_label_repel(
+    nudge_x = 0.25, nudge_y = 0.25) +
+  labs(x = "Obesity",
+       y = "Poverty") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1) ) +
+  scale_x_continuous(labels = scales::percent_format(scale = 1) ) +
+  labs(title = 'Poverty and obesity relation by year: {round(frame_time)}', x = 'Obesity', y = 'Poverty') +
+  theme(plot.title=element_text(size=16)) +
+   # Here comes the gganimate specific bits
+  transition_time(YearStart) +
+  ease_aes('linear')
+
+
+
+
+
+#animate(animated_total, fps = 10, duration =  30 )
+
+
+
+
+
+# Divide the set according to the last year high levels of Obesity to facet
+# Can be interesting to divide by poverty level in other graph
+
+
+
+
+test <- animation %>% filter(YearStart == 2021) %>% mutate(
+  obesity_group = case_when(
+    perc_obesity <= 30 ~ "15% - 30% Obesity by 2021",
+    perc_obesity > 30 & perc_obesity <= 33 ~ "30% - 33% Obesity by 2021",
+    perc_obesity >33 & perc_obesity <= 35 ~ "33% - 35% Obesity by 2021",
+    perc_obesity >35 & perc_obesity <= 37 ~ "36% - 37% Obesity by 2021",
+    perc_obesity > 37 ~ "37% - 45% Obesity by 2021" ) )
+
+animation_facet <- animation %>% left_join(test, by = "LocationDesc") %>% select(1,2,3,4,5,10) %>% 
+              rename(year = YearStart.x,
+                     abbr = LocationAbbr.x,
+                     state = LocationDesc,
+                     obesity = perc_obesity.x,
+                     poverty = perc_poverty.x)
+
+animation_facet <-  animation_facet %>%  filter(state != "Puerto Rico")
+
+animated_facet_graph_unlabeled <-  ggplot(animation_facet, aes(obesity, poverty, colour = state, label = state)) +
+  geom_point(alpha = 0.7, show.legend = FALSE) +
+  guides(color = "none", size ="none", label = "none") +
+#  geom_label_repel(
+#    nudge_x = 0.25, nudge_y = 0.25) +
+  labs(x = "Obesity",
+       y = "Poverty") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1) ) +
+  scale_x_continuous(labels = scales::percent_format(scale = 1) ) +
+  #  scale_size(range = c(2, 12)) +
+  #  scale_x_log10() +
+  facet_wrap(~obesity_group, ncol = 2) +
+  # Here comes the gganimate specific bits
+  labs(title = 'Poverty and obesity relation by year: {round(frame_time)}', x = 'Obesity', y = 'Poverty') +
+  theme(plot.title=element_text(size=16)) +
+  transition_time(year) +
+  ease_aes('linear')
+
+
+
+
+
+animated_facet_graph <- ggplot(animation_facet, aes(obesity, poverty, colour = state, label = state)) +
+  geom_point(alpha = 0.7, show.legend = FALSE) +
+  guides(color = "none", size ="none", label = "none") +
+  geom_label_repel(
+    nudge_x = 0.25, nudge_y = 0.25) +
+  labs(x = "Obesity",
+       y = "Poverty") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1) ) +
+  scale_x_continuous(labels = scales::percent_format(scale = 1) ) +
+  #  scale_size(range = c(2, 12)) +
+  #  scale_x_log10() +
+  facet_wrap(~obesity_group, ncol = 2) +
+  # Here comes the gganimate specific bits
+  labs(title = 'Poverty and obesity relation by year: {round(frame_time)}', x = 'Obesity percent', y = 'Poverty percent') +
+  theme(plot.title=element_text(size=16)) +
+  transition_time(year) +
+  ease_aes('linear')
+```
+
+```{r plot_data2}
+# The generation of these animations takes a while, then to speed things I generetaed once and saved as a gif file.
+
+#first <- animate(animated_total, fps = 10, duration =  40, start_pause = 50, end_pause = 50)
+
+#second <- animate(animated_facet_graph_unlabeled, fps = 10, duration =  30 , start_pause = 50, end_pause = 50)
+
+
+#third <- animate(animated_facet_graph, fps = 10, duration =  30 , start_pause = 50, end_pause = 50)
+
+
+
+#anim_save("first.gif", first)
+#anim_save("second.gif", second)
+#anim_save("third.gif",third)
+
+
+
+
+```
+
+
+<img src="first.gif" width="750" height="750"/>
+
+
+
+<img src="second.gif" width="750" height="750"/>
+
+
+```{r plot_data3}
+#animated_facet_graph_unlabeled
+```
+
+
+<img src="third.gif" width="750" height="750"/>
+
+```{r plot_data4}
+#animated_facet_graph
+```
+
+## Conclusions
+It seems like the more insecure for any given reason people feels, the more probable they alter the patterns of food consumption leading to obesity. There is not conclusive evidence that these patterns show cause effect relations. The correlations between states with higher indicators of poverty can be misleading since patterns of obesity can also be related with social and cultural environments. That said, further analysis can give more understanding of the subject. An example can be to study the distance between food stores with a richer variety of nutritious foods and geographical areas (counties) with higher indicators of obesity. It can be that the relation between income and obesity also give more light over this problem.   
+

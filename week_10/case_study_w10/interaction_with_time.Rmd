@@ -1,0 +1,379 @@
+---
+title: "Interaction with Time"
+author: "Carlos Gerez"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:  
+    keep_md: true
+    toc: true
+    toc_float: true
+    code_folding: hide
+    fig_height: 6
+    fig_width: 8
+    fig_align: 'center'
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r load_libraries, include=FALSE}
+# Use this R-Chunk to load all your libraries!
+#install.packages("tidyverse") # run this line once in console to get package
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(timetk)
+library(gridExtra)
+library(htmltools)
+library(tidyquant)
+library(dygraphs)
+library(scales)
+library(ggforce)
+library("ggthemes")
+
+```
+
+```{r load_data}
+# Use this R-Chunk to import all your datasets!
+
+tickers_today <- c("CXW", "F", "GM", "KR", "WDC", "NKE","T", "WDAY", "WFC", "WMT")
+
+five_years_back <-  Sys.Date() %>% -years(5)
+
+stock <-  tq_get(tickers_today,
+       from = five_years_back) 
+
+
+```
+
+## Background
+Your data science income has ballooned, and you need to find somewhere to invest $25,000 that you have saved over the last year. You have a savvy investment friend that is kind enough to tell you ten stocks she has been watching during the last year. You will need to visualize the last five years performance to help in the conversation with your friend.  
+Your friend is going to give you her stock tickers at the beginning of your half-hour meeting with her (she is a busy friend). You will need to build an .Rmd file that will build a suite of visualizations rapidly for your conversation. You will need a series of stock performance graphics using library(dygraphs) and library(ggplot2). In real life, you might use one or the other, but this task is built to help you move from ts and xts to tidy objects for visualization.  
+
+## Task  
+1. For your coding development use the following tickers: tickers_today <- c("CXW", "F", "GM", "JCP", "KR", "WDC", "NKE","T", "WDAY", "WFC", "WMT").  
+2. Use library(dygraphs) to build interactive visualizations of the stock performances over the last five years.  
+3. Make a library(ggplot2) graphic that helps you build a solid question around how an investor would use volume in their trading strategy.  
+4. Create an .Rmd file with one to two paragraphs summarizing your graphics and the choices you made in your visualization.  
+5. Push your .Rmd, .md, and .html file into your git repository.  
+6. Publish your assignment via Rstudio Connect at shiny.byui.edu
+
+## Select smaller periods to look for more detailed differences and patterns. Double click to reset period.
+
+```{r tidy_data}
+# Use this R-Chunk to clean & wrangle your data!
+
+
+#-------------------- filtering each stock for graph purposes ---------------------
+
+CXW <- stock %>% filter(symbol == "CXW")
+
+#cxw <- CXW %>% select(-symbol, - volume)
+
+CXW <-  CXW %>% select( date, volume, adjusted)
+
+f <- stock %>% filter(symbol == "F") %>% 
+               select( date, volume, adjusted)
+
+GM <- stock %>% filter(symbol == "GM") %>% 
+               select( date, volume, adjusted)
+
+KR <- stock %>% filter(symbol == "KR") %>% 
+               select( date, volume, adjusted)
+
+WDC <- stock %>% filter(symbol == "WDC") %>% 
+               select( date, volume, adjusted)
+
+NKE <- stock %>% filter(symbol == "NKE") %>% 
+               select( date, volume, adjusted)
+
+t <- stock %>% filter(symbol == "T") %>% 
+               select( date, volume, adjusted)
+
+WDAY <- stock %>% filter(symbol == "WDAY") %>% 
+               select( date, volume, adjusted)
+
+WFC <- stock %>% filter(symbol == "WFC") %>% 
+               select( date, volume, close)
+
+
+WMT <- stock %>% filter(symbol == "WMT") %>% 
+               select( date, volume, adjusted)
+
+
+
+
+
+# ------------------- this filter the data and pivoted to get a column for each symbol---------------------
+
+# Since dyGraph graph each column as a line this is the way to show each symbol as a different line
+
+
+st <- stock %>% select(symbol, date, adjusted)
+ 
+s1 <- st %>% pivot_wider(names_from = symbol, values_from = adjusted) %>% 
+           dygraph(main = "Stock performances", group = "stocks") %>% 
+           dyAxis("y", label = "Adjusted value")
+
+
+s1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#------------------ test to try facet the graphs in some way (poor results) -------------------------
+# create a list of dygraphs objects
+
+#plotobj <- list(p1, p2, p2, p1, p2, p1, ncol = 3)
+  # end list
+# render the dygraphs objects using htmltools
+#htmltools::browsable(htmltools::tagList(plotobj))
+
+```
+
+## What volume variations express about a stock Performance
+### This interactive graphs show the interaction of volume and price adjusted per ticket. 
+```{r plot_data}
+# Use this R-Chunk to plot & visualize your data!
+
+# From here a graph to match volume wit each adjusted price 
+
+
+Cxw <- dygraph(CXW, main = "CXW", group = "stocks") %>%
+  dySeries("volume", axis = "y2" ) %>%
+  dyAxis("y", label = "Adjusted value") %>%
+  dyAxis("y2", label = "Volume" ) %>%
+  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2) %>% 
+  dyOptions(axisLabelWidth = 90, colors = RColorBrewer::brewer.pal(2,"Dark2"))
+
+Cxw 
+
+
+#p11 <- dygraph(cxw, group = "stocks") %>%
+ # dyCandlestick()
+
+#p11  
+  
+f1 <- dygraph(f, main = "F", group = "stocks") %>% 
+  dySeries("volume", axis = "y2" ) %>%
+  dyAxis("y", label = "Adjusted value") %>%
+  dyAxis("y2", label = "Volume" ) %>%
+  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2) %>% 
+  dyOptions(axisLabelWidth = 90, colors = RColorBrewer::brewer.pal(2,"Dark2"))
+
+
+f1
+
+
+Gm <- dygraph(GM, main = "GM", group = "stocks") %>%
+  dySeries("volume", axis = "y2" ) %>%
+  dyAxis("y", label = "Adjusted value") %>%
+  dyAxis("y2", label = "Volume" ) %>%
+  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2) %>% 
+  dyOptions(axisLabelWidth = 90, colors = RColorBrewer::brewer.pal(2,"Dark2"))
+
+Gm
+
+
+Kr <- dygraph(KR, main = "KR", group = "stocks") %>%
+  dySeries("volume", axis = "y2" ) %>%
+  dyAxis("y", label = "Adjusted value") %>%
+  dyAxis("y2", label = "Volume" ) %>%
+  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2) %>% 
+  dyOptions(axisLabelWidth = 90, colors = RColorBrewer::brewer.pal(2,"Dark2"))
+
+Kr
+
+
+Wdc <- dygraph(WDC, main = "WDC", group = "stocks") %>%
+  dySeries("volume", axis = "y2" ) %>%
+  dyAxis("y", label = "Adjusted value") %>%
+  dyAxis("y2", label = "Volume" ) %>%
+  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2) %>% 
+  dyOptions(axisLabelWidth = 90, colors = RColorBrewer::brewer.pal(2,"Dark2"))
+
+Wdc
+
+
+Nke <- dygraph(NKE, main = "NKE", group = "stocks") %>%
+  dySeries("volume", axis = "y2" ) %>%
+  dyAxis("y", label = "Adjusted value") %>%
+  dyAxis("y2", label = "Volume" ) %>%
+  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2) %>% 
+  dyOptions(axisLabelWidth = 90, colors = RColorBrewer::brewer.pal(2,"Dark2"))
+
+Nke
+
+t1 <- dygraph(t, main = "T", group = "stocks") %>%
+  dySeries("volume", axis = "y2" ) %>%
+  dyAxis("y", label = "Adjusted value") %>%
+  dyAxis("y2", label = "Volume" ) %>%
+  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2) %>% 
+  dyOptions(axisLabelWidth = 90, colors = RColorBrewer::brewer.pal(2,"Dark2"))
+
+t1
+
+Wday <- dygraph(WDAY, main = "WDAY", group = "stocks") %>%
+  dySeries("volume", axis = "y2" ) %>%
+  dyAxis("y", label = "Adjusted value") %>%
+  dyAxis("y2", label = "Volume" ) %>%
+  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2) %>% 
+  dyOptions(axisLabelWidth = 90, colors = RColorBrewer::brewer.pal(2,"Dark2"))
+
+Wday
+
+Wfc <- dygraph(WFC, main = "WFC", group = "stocks") %>%
+  dySeries("volume", axis = "y2" ) %>%
+  dyAxis("y", label = "Adjusted value") %>%
+  dyAxis("y2", label = "Volume" ) %>%
+  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2) %>% 
+  dyOptions(axisLabelWidth = 90, colors = RColorBrewer::brewer.pal(2,"Dark2"))
+
+Wfc
+
+Wmt <- dygraph(WMT, main = "WMT", group = "stocks") %>%
+  dySeries("volume", axis = "y2" ) %>%
+  dyAxis("y", label = "Adjusted value") %>%
+  dyAxis("y2", label = "Volume" ) %>%
+  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2) %>% 
+  dyOptions(axisLabelWidth = 90, colors = RColorBrewer::brewer.pal(2,"Dark2"))
+
+Wmt 
+
+
+  
+  
+
+
+# --------------------- Now with ggplot2 and timetk ---------------------------------------------
+
+  
+# summarise data with timetk, in this case volume and adjusted by month
+
+
+s2 <- stock %>%
+  group_by(symbol) %>%
+  summarise_by_time(
+    date, 
+    .by    = "month",
+    volume = sum(volume),
+    adjusted = sum(adjusted),
+    volume_int = as.integer(volume)
+  )
+
+#------------------------------ Graph the volume variations by month ---------------------------
+
+s3 <- s2 %>% group_by(symbol) %>%  
+  ggplot( aes(x = date, y = volume, fill = symbol)) +
+  geom_bar(stat = "identity") +
+  geom_smooth(method = "loess", se = FALSE) +
+  facet_wrap( ~ symbol, scale = "free", ncol = 3) +
+  theme(axis.text.x = element_text(angle = 45)) +
+  scale_y_continuous(labels = (label_number(scale = 0.000001, prefix = " M ")))
+
+
+
+
+s33 <- s2 %>%  group_by(symbol) %>% 
+          ggplot(aes(x = date, y = adjusted, color = symbol, group = 1) ) +
+            geom_line() +
+            facet_wrap(~ symbol, scale = "free", ncol = 3) +
+            theme(axis.text.x = element_text(angle = 45))
+
+# ----------------- This is a basic graph to use in the facet_wrap_paginate ----------------------
+s4 <- s2 %>%  group_by(symbol) %>% 
+  ggplot( aes(x = date, y = volume, fill = symbol)) +
+  geom_bar(stat = "identity") +
+  geom_smooth(method = "loess", se = FALSE) +
+ # facet_wrap( ~ symbol, scale = "free", ncol = 3) +  This is the only line we has to change to implement this
+  theme(axis.text.x = element_text(angle = 45)) +
+  scale_y_continuous(labels = (label_number(scale = 0.000001, prefix = " M "))) +
+  guides(fill = "none", color = "none") +
+  theme_fivethirtyeight()
+
+
+
+# ----------------- use facet_wrap_paginate to construct our facets ----------------         
+
+for (i in 1:2) {
+     print( s4 +
+              labs(
+                    title = "Tendency of volume variations.",
+                    subtitle = "Is important look if is going down, up or if is stable on each ticket.",
+                    caption = "Volumes with increasing tendency imply more confidence in the price of the share.",
+                    x = "") +
+              facet_wrap_paginate( ~ symbol, ncol = 2, nrow = 3,
+                        scales = "free", strip.position = "top", page = i))
+} 
+
+
+# ----------------- This is a basic graph to use in the facet_wrap_paginate ----------------------
+
+s5 <- s2 %>%  group_by(symbol) %>% 
+          ggplot(aes(x = date, y = adjusted, color = symbol, group = 1) ) +
+            geom_smooth(method = "loess", se = FALSE) +
+            geom_line() +
+#            facet_wrap(~ symbol, scale = "free", ncol = 3) + This is the only line we has to change to implement this
+            theme(axis.text.x = element_text(angle = 45)) +
+            guides(fill = "none", color = "none")  +
+            theme_fivethirtyeight()
+   
+
+
+
+# ----------------- use facet_wrap_paginate to construct our facets ----------------   
+
+for (i in 1:2) {
+     print( s5 +
+              labs(
+                    title = "Adjusted price tendencies. ",
+                    subtitle = "This complementary statistics help to decide when buy or sell.",
+                    caption = "Of course is better to sell when the price is up, but to predict the higher price we has to look at volumes of transactions. ",
+                    x = "") +
+              facet_wrap_paginate( ~ symbol, ncol = 2, nrow = 3,
+                        scales = "free", strip.position = "top", page = i))
+
+}
+
+s1 
+
+
+
+# --------------------------- Another way to explore wth quantmode --------------------------
+getSymbols("KR",
+           from = five_years_back )
+
+chartSeries(KR,
+            type = "line",
+            subset = '2022',
+            theme = chartTheme('white'))
+
+getSymbols("GM",
+           from = five_years_back)
+
+chartSeries(GM,
+            type = "line",
+            theme = chartTheme("white"))
+# I repeat the first graph here to have a better view of the comparative prices per ticket.
+
+```
+
+## Conclusions
+- Stock prices are not always the best way to look for trends in the stock market. Volumes of transactions help to refute or confirm trends.
+- If both have an increasing tendency that can signal that traders are committed to a price move.
+- A more detailed explanation can be found [here.](https://www.schwab.com/learn/story/trading-volume-as-market-indicator)
+_ I found that ggplot2 gives more flexibility to show this tendencies than dygraph, since I cannot find a way to facet dygraphs yet. 
+- I also found another better way to graph this relations in :chartSeries as shown in the last graphs with Quantmod.
+ 

@@ -1,0 +1,122 @@
+---
+title: "Week 3 Tibbles and Data Structures"
+output: 
+  html_document:  
+    keep_md: true
+    toc: true
+    toc_float: true
+    code_folding: show
+    fig_height: 6
+    fig_width: 12
+    fig_align: 'center'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+```
+
+# Data Structures 
+
+## Vectors vs. Lists
+
+<p style="text-align: left;">
+A vector is a sequence of data elements of the same basic type. This is called "atomic" in R.
+A list is a sequence of data elements of any type. There are 5 basic/common data types in R: logical, integer, double (i.e. a decimal number), character, and factor. 
+
+The chief difference between atomic vectors and lists is that atomic vectors are homogeneous, while lists can be heterogeneous. One of the elements within a list can be another list, so they are recursive.
+
+On a related note, there is NULL. NULL is often used to represent the absence of a vector (as opposed to NA which is used to represent the absence of a value in a vector). NULL typically behaves like a vector of length 0. 
+</p>
+
+### Vector arithmetic: recycling
+
+Run this line of code, which seeks to add two vectors together that are not of equal length. Then describe how R is performing the vector addition. (Review the assigned reading if needed)
+
+```{r}
+1:2 + 1:10
+```
+
+
+## Lists vs. Data Frame vs. Tibbles
+
+Understanding how lists work and the power of lists is an important key to becoming a master R programmer.  
+
+
+### Is a data.frame a list?
+
+Data frames are lists as well, but they have a few restrictions:
+
+ - you can't use the same name for two different variables
+ - all elements of a data frame are vectors
+ - all elements of a data frame have an equal length.
+
+Due to these restrictions and the resulting two-dimensional structure, data frames can mimick some of the behavior of matrices: You can select rows and do operations on rows. You can't do that with lists, since technically there is no such thing as a "row" in lists.
+
+
+### What is a tibble?
+
+A tibble is a new class of object, invented by the makers of the tidyverse. It is similar to a dataframe, but it's defaults are often preferred over the default behavior of data frames. Compare class of mtcars and mpg datasets.
+
+```{r}
+library(tidyverse)
+class(mtcars)
+class(mpg)
+```
+
+A tibble `tbl` is also a `tbl_df` and a `data.frame`. One is strictly a data frame, the other can function as a data frame and a tibble, but will default to tibble behavior.
+
+### data.frame and tbl
+
+**What is the difference between tibbles and data frames?**
+
+The most obvious difference between a dataframe and a tibble is how they are viewed.
+
+```{r}
+mtcars
+```
+
+```{r}
+mpg
+```
+
+Here are some other key differences, a tibble:
+
+* Never coerces inputs (i.e. strings stay as strings, they aren't converted to factors!).
+* Never adds row.names.
+* Never munges (i.e. changes) column names.
+* Only recycles length 1 inputs.
+* Evaluates its arguments lazily and in order.
+* Adds tbl_df class to output.
+* Automatically adds column names.
+* When printed, the tibble reports the class of each variable. data.frame objects do not.
+* When printing a tibble to screen, only the first ten rows are displayed. The number of columns printed depends on the window size.
+
+## Working with lists and vectors
+
+Here is a silly list we will use for the following examples.
+
+```{r}
+a <- list(a = 1:3, b = "a string", c = pi, d = list(-1, list(-5, "fish")))
+a
+```
+
+### The Double bracket
+
+There is an important variation of [ called [[. [[ only ever extracts a single element, and always drops names. It's a good idea to use whenever you want to make it clear that you're extracting a single item, as in a for loop. The distinction between [ and [[ is most important for lists, as we'll see shortly.
+
+**Compare:** Can you describe what is happening in each one? 
+
+```{r}
+a[[c(4,2,2)]]
+```
+
+```{r}
+a[c(4,2,2)]
+```
+
+In the double bracket code above, the double bracket selects the fourth item of the `a` list, which is in turn another list. Then it drills down to select the 2nd item in this embedded list, which is yet another list. The code is instructed to then select the 2nd item of that list.
+
+In the single bracket code, the single brackets treat each number in the vector as trying to tell us which element**s** (plural) to return from item `a`. Therefore, it first returns the 4th item of `a`, which is a couple of embedded lists. It also returns the 2nd object of `a` twice.
+
+

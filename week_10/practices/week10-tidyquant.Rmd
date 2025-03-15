@@ -1,0 +1,377 @@
+---
+title: "Week 10 Financial Time Series"
+output: 
+  html_document:  
+    keep_md: false
+    toc: true
+    toc_float: true
+    code_folding: show
+    fig_height: 6
+    fig_width: 12
+    fig_align: 'center'
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, error = TRUE)
+
+```
+
+```{r include = FALSE}
+library(tidyverse, warn.conflicts = FALSE)
+library(tidyquant)
+```
+
+## Time Series objects
+
+Just like the tidyverse package uses a tibble instead of a data.frame, many packages that deal with time series create their own type or class of objects in which to store the data. The most common are `xt`, `zoo` and `xts` objects. Many other packages are designed for financial time series analysis, like `quantmod`, `TTR`, and `PerformanceAnalytics`. Getting the functions and various data types in these packages to integrate seamlessly is an important task. That is where the  `tidyquant` and `timetk` packages come in handy.
+
+We will focus primarily on `tidyquant` in this lesson.
+
+## Tidyquant
+
+To get a brief overview of `tidyquant` read here: https://business-science.github.io/tidyquant
+
+Especially, watch the [video](https://www.youtube.com/embed/woxJZTL2hok) on that webpage. 
+
+### Exercises
+
+  1. From the webpage and the video, identify the 3 core functions of `tidyquant`. 
+  2. Write out a description of what the code in the chunk below is doing.
+  
+```{r echo = TRUE, eval = FALSE}
+price_data <- tq_get(c("BA", "AMZN", "MSFT"),
+       get = "stock.prices",
+       from = "2020-03-01")
+
+price_data
+#You can add "to = " also to further refine the dates
+
+
+# Here we get the stock prices for 3 different stocks from 1 of march of  2020
+```
+
+For the next couple of question, consider the code below:
+
+```{r transmute_example, eval=FALSE, echo=TRUE}
+
+return_data <- price_data %>% 
+  group_by(symbol) %>% 
+tq_transmute(select = adjusted,
+               mutate_fun = periodReturn,
+               period = "daily",
+               type = "log")
+view(return_data)
+
+return_anual <-  price_data %>% 
+  group_by(symbol) %>% 
+  tq_transmute(select = adjusted,
+               mutate_fun = periodReturn,
+               period = "yearly",
+               type = "log")
+
+
+return_data2 <- price_data %>% 
+  group_by(symbol) %>% 
+tq_transmute(select = adjusted,
+               mutate_fun = periodReturn,
+               period = "monthly",
+               type = "log")
+
+view(return_data2)
+
+return_anual_indiv <- price_data %>%
+    group_by(symbol) %>%
+    tq_transmute(select     = adjusted, 
+                 mutate_fun = periodReturn, 
+                 period     = "yearly", 
+                 type       = "arithmetic")
+#return_anual_indiv
+
+
+```
+
+  3. Write out a description of what this code is doing. **Hint:** Try reading the help file for `quantmod::periodReturn()`.
+  4. what are the implications of using tq_transmute instead of tq_mutate?
+  5. Write out a description of what the code in the chunk below is doing. **Hint:** Try reading both help files for `tidyquant::tq_portfolio()`, which is a wrapper for `PerformanceAnalytics::Return.portfolio()`.
+
+```{r example1, eval=FALSE, echo=TRUE}
+
+
+#-------------------Portfolios ---------------------------------
+
+
+port1 <- return_data %>%
+  tq_portfolio(assets_col=symbol,
+               returns_col=daily.returns,
+               weights = tibble(asset.names = c("BA", "AMZN", "MSFT"), 
+                                weight = c(0.259,.534,.207)),
+               wealth.index = T)                      
+#port2 <- 
+
+view(port1)
+
+return_data2 %>% 
+  tq_portfolio(assets_col=symbol,
+               returns_col=monthly.returns,
+               weights = tibble(asset.names = c("BA", "AMZN", "MSFT"), 
+                                weight = c(0.259,.534,.207)),
+               wealth.index = T)
+
+return_anual %>%  tq_portfolio(assets_col=symbol,
+               returns_col=yearly.returns,
+               weights = tibble(asset.names = c("BA", "AMZN", "MSFT"), 
+                                weight = c(0.259,.534,.207)),
+               wealth.index = T)
+
+
+
+#-------------------------------------------------
+stock_returns_monthly <- c("AAPL", "GOOG", "NFLX") %>%
+    tq_get(get  = "stock.prices",
+           from = "2010-01-01",
+           to   = "2015-12-31") %>%
+    group_by(symbol) %>%
+    tq_transmute(select     = adjusted, 
+                 mutate_fun = periodReturn, 
+                 period     = "monthly", 
+                 col_rename = "Ra")
+view(stock_returns_monthly)
+
+
+
+#----------------- More practices from Tidyquant ----------------------
+
+tq_index_options()
+
+tq_index("SP500")
+
+
+tq_exchange_options()
+
+#tq_exchange("AMEX")
+
+tq_get_options()
+
+
+aapl_prices  <- tq_get("AAPL", get = "stock.prices", from = " 1990-01-01")
+aapl_prices 
+
+quandl_api_key("Yijz2v85FFts55wbRtmM")
+
+quandl_search(query = "Oil", database_code = "NSE", per_page = 10)
+
+
+
+end <- as_date("2023-03-01")
+end
+
+zoom_range <- price_data %>% 
+  tail(60) %>% 
+  summarise(
+    max_high = max(high),
+    min_low = min(low)
+  )
+
+
+zoom_range
+
+# Line chart
+
+
+p1 <- price_data %>%
+    ggplot(aes(x = date, y = close, group= symbol, color = symbol)) +
+    geom_line() +
+    labs(title = "Line chart", y = "Closing Price", x = "") + 
+    theme_tq()
+p1
+
+
+# Bar chart and zoom
+
+p2 <- price_data %>%
+    ggplot(aes(x = date, y = close, group = symbol, color = symbol)) +
+    geom_barchart(aes(open = open, high = high, low = low, close = close)) +
+    labs(title = "Bar chart", y = "Closing Price", x = "") + 
+    theme_tq()
+p2
+
+p3 <- price_data %>%
+    ggplot(aes(x = date, y = close)) +
+    geom_barchart(aes(open = open, high = high, low = low, close = close)) +
+    labs(title = " Bar Chart", 
+         subtitle = "Zoomed in using coord_x_date",
+         y = "Closing Price", x = "") + 
+    coord_x_date(xlim = c(end - weeks(6), end),
+                 ylim = c(zoom_range$min_low - 200, zoom_range$max_high)) +
+    theme_tq()
+p3
+# candlestick chart and zoom
+
+p4 <- price_data %>%
+    ggplot(aes(x = date, y = close)) +
+    geom_candlestick(aes(open = open, high = high, low = low, close = close)) +
+    labs(title = "Candlestick Chart", y = "Closing Price", x = "") +
+    theme_tq()
+p4
+
+p5 <- price_data %>%
+    ggplot(aes(x = date, y = close)) +
+    geom_candlestick(aes(open = open, high = high, low = low, close = close)) +
+    labs(title = "AAPL Candlestick Chart", 
+         subtitle = "Zoomed in using coord_x_date",
+         y = "Closing Price", x = "") + 
+    coord_x_date(xlim = c(end - weeks(6), end),
+                 c(zoom_range$min_low - 200, zoom_range$max_high - 200)) + 
+    theme_tq()
+
+p5
+
+start <- end - weeks(6)
+
+p6 <- price_data %>%
+    filter(date >= start - days(2 * 15)) %>%
+    ggplot(aes(x = date, y = close, group = symbol)) +
+    geom_candlestick(aes(open = open, high = high, low = low, close = close)) +
+    labs(title = "Candlestick Chart", 
+         subtitle = "Experimenting with Mulitple Stocks",
+         y = "Closing Price", x = "") + 
+    coord_x_date(xlim = c(start, end)) +
+    facet_wrap(~ symbol, ncol = 2, scale = "free_y") + 
+    theme_tq()
+p6
+
+
+
+
+
+# with moving average
+
+start <- end - weeks(6)
+p7 <- price_data %>%
+    filter(date >= start - days(2 * 15)) %>%
+    ggplot(aes(x = date, y = close, group = symbol)) +
+    geom_candlestick(aes(open = open, high = high, low = low, close = close)) +
+    geom_ma(ma_fun = SMA, n = 15, color = "darkblue", size = 1) +
+    labs(title = "FANG Candlestick Chart", 
+         subtitle = "Experimenting with Mulitple Stocks",
+         y = "Closing Price", x = "") + 
+    coord_x_date(xlim = c(start, end)) +
+    facet_wrap(~ symbol, ncol = 2, scale = "free_y") +
+    theme_tq()
+
+p7
+# charting  returns yearly
+
+p8 <- return_anual_indiv %>%
+    ggplot(aes(x = date, y = yearly.returns, fill = symbol)) +
+    geom_col() +
+    geom_hline(yintercept = 0, color = palette_light()[[1]]) +
+    scale_y_continuous(labels = scales::percent) +
+    labs(title = "Annual Returns",
+         subtitle = "Get annual returns quickly with tq_transmute!",
+         y = "Annual Returns", x = "") + 
+    facet_wrap(~ symbol, ncol = 2, scales = "free_y") +
+    theme_tq() + 
+    scale_fill_tq()
+p8
+# Charting returns daily
+
+p9 <- return_data %>%
+    ggplot(aes(x = daily.returns, fill = symbol)) +
+    geom_density(alpha = 0.5) +
+    labs(title = "Charting the Daily Log Returns",
+         x = "Daily Returns", y = "Density") +
+    theme_tq() +
+    scale_fill_tq() + 
+    facet_wrap(~ symbol, ncol = 2)
+p9
+
+
+p10 <- return_data %>%
+    ggplot(aes(x = daily.returns, fill = symbol)) +
+    geom_density(alpha = 0.6) +
+    labs(title = "Charting the Daily Log Returns",
+         x = "Daily Returns", y = "Density") +
+    theme_tq() +
+    scale_fill_tq() 
+p10
+
+
+
+
+# daily price data graph by stock
+
+p11 <- price_data %>%
+    ggplot(aes(x = date, y = adjusted, color = symbol)) +
+    geom_line(size = 1) +
+    labs(title = "Daily Stock Prices",
+         x = "", y = "Adjusted Prices", color = "") +
+    facet_wrap(~ symbol, ncol = 2, scales = "free_y") +
+    scale_y_continuous(labels = scales::dollar) +
+    theme_tq() + 
+    scale_color_tq()
+p11
+
+p12 <- price_data %>%
+    ggplot(aes(x = date, y = adjusted, color = symbol)) +
+    geom_line(size = 1) +
+    labs(title = "Daily Stock Prices",
+         x = "", y = "Adjusted Prices", color = "") +
+#    facet_wrap(~ symbol, ncol = 2, scales = "free_y") +
+    scale_y_continuous(labels = scales::dollar) +
+    theme_tq() + 
+    scale_color_tq()
+p12
+# with monthly aggregation
+
+price_monthly <- price_data %>%
+    group_by(symbol) %>%
+    tq_transmute(select     = adjusted, 
+                 mutate_fun = to.period, 
+                 period     = "months")
+price_monthly
+
+p13 <- price_monthly %>%
+    ggplot(aes(x = date, y = adjusted, color = symbol)) +
+    geom_line(size = 1) +
+    labs(title = "Monthly Stock Prices",
+         x = "", y = "Adjusted Prices", color = "") +
+    facet_wrap(~ symbol, ncol = 2, scales = "free_y") +
+    scale_y_continuous(labels = scales::dollar) +
+    theme_tq() + 
+    scale_color_tq()
+
+p13
+p14 <- price_monthly %>%
+    ggplot(aes(x = date, y = adjusted, color = symbol)) +
+    geom_line(size = 1) +
+    labs(title = "Monthly Stock Prices",
+         x = "", y = "Adjusted Prices", color = "") +
+#    facet_wrap(~ symbol, ncol = 2, scales = "free_y") +
+    scale_y_continuous(labels = scales::dollar) +
+    theme_tq() + 
+    scale_color_tq()
+
+p14
+
+```
+```{r}
+p1
+p2
+p3
+p4
+p5
+p6
+p7
+
+```
+
+Because tidyquant is a package that strives to wrap together many other packages, it can be difficult to find the right help file. You may have to dig deeper than just looking at the wrapper function. Look at functions supplied as arguments to other functions too.
+
+## Solutions
+
+  1. get: tq_get(), manipulate: tq_transmuate and tq_mutate(), analyze: tq_portfolio() and tq_performance()
+  2. Get stock price data for the 3 specified stocks (Boeing, Amazon, and Microsoft) as far back as March 3, 2020.
+  3. Take the price data and use the column named "adjusted" to calculate the daily log returns for each stock. The adjusted stock price is a more accurate determination of the value of a stock because it takes into account corporate actions such as stock splits, dividends, rights offerings, etc. A daily return measures the growth of the stock price (in this case the adjusted stock price) of the day in question compared to the previous day. The other accepted argument for type is "arithmetic". You don't need to worry about the difference in this class, but in case you are curious, here is a very brief explanation [read here](https://chandlerfang.com/2017/01/09/arithmetic-vs-logarithmic-rates-of-return/)
+  4. tq_transmute will only keep the newly calculated vector (or column) of data, the rest of the columns will be dropped from the dataset. If you change the periodicity of the returns to something other than daily then you will need to use tq_transmute instead of tq_mutate because, like a group_by() %>% summarise() situation, the new vector is not the same size as the original dataset.
+  5. Using the dataset that contains returns, tq_portfolio() tells me I would like to analyze the collection of stocks together (i.e. as a portfolio of stocks), instead of each stock individually. The stock ticker, or stock name, is in the symbol column, and the returns data is contained in the daily.returns column of the `return_data`. The return of my portfolio will be a weighted average of returns of the 3 stocks. When computing the overall return of the portfolio BA should have a weight of .259, AMZN should have a weight of .534 and MSFT should have a weight of .207. (I would take this approach if Amazon represented 53.4% of the shares in my portfolio, for example. The default is equal weighting). The wealth.index argument indicates that instead of calculating the relative growth of the index compared to the previous day, I would like to track the value of the portfolio relative to a fixed point in the past (i.e. the first row of the data).

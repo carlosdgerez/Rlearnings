@@ -1,0 +1,225 @@
+---
+---
+title: "Leaflet Day 1: COVID Class Activity"
+author: "YOUR NAME"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:  
+    keep_md: true
+    toc: true
+    toc_float: true
+    code_folding: hide
+    fig_height: 6
+    fig_width: 12
+    fig_align: 'center'
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+## Introduction
+
+In this file we will use the `sf` package (which stands for simple features) to create a choropleth of confirmed COVID cases by state. We want a map of the contiguous 48 states in the USA, we will color the states depending on how many confirmed COVID-19 cases they have had.
+
+The geometries for the united states will come from the `USAboundaries` package. The `sf` package will allow us to work with geometry/shape data, so will load that package as well.
+
+```{r load_libraries, include=FALSE}
+# Use this R-Chunk to load all your libraries!
+library(USAboundaries)
+library(tidyverse)
+library(sf)
+library(ggrepel)
+```
+
+We will now pull in some COVID data from the New York Times GitHub account. This pulls in a running total of confirmed cases and deaths for each state.
+
+```{r}
+covid <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv")
+```
+
+We are only interested in the most recent data, we are not trying to show the progression over time. So I will use the `today()` function from the `lubridate` package and filter the dataset to include just the most recent date (i.e. yesterday).
+
+```{r}
+covid %>% 
+  filter(date == lubridate::today() - 1)
+```
+
+## Wrangling
+
+You can see that the resulting dataset has 56 rows. A quick look reveals that the dataset includes US territories and the District of Columbia. We want only 48 rows, one for each of the 48 contiguous United States. To get just the 50 states I can use the built in vector `state.name` that comes pre-loaded in base R. After narrowing it down to just 50 states, I will remove Hawaii and Alaska one by one.
+
+*Note, when expressions inside of filter are separated by a comma it is the equivalent logic of seperating each logical expression with an "&". In other words, all the criteria must be met for a row to be returned.
+
+```{r}
+covid48 <- covid %>% 
+  filter(date == lubridate::today() - 1,
+         state %in% state.name,
+         state != "Hawaii",
+         state != "Alaska")
+```
+
+As mentioned earlier the datasets containing the geometries for the united states will come from the `USAboundaries` package (see the reading for more info). To access that we use the `us_states()` command. That command returns a dataset with various identification numbers for the state, their names, other information, etc. The geometry column is the last column in the dataset.
+
+```{r}
+(states <- us_states()) #The parenthesis around the command allows the result to print to console
+```
+
+We now need to put the covid48 dataset together with the dataset returned by the `us_states()` command. Write the code to do that below, remembering that the resulting dataset should only have 48 rows (one for each of the 48 contiguous states). Try a `glimpse()` of `coronaplot` after filling in the blanks in the code below to ensure coronaplot has the correct number of rows and columns.
+
+```{r joining}
+coronaplot <- ***_join( ____, ____, by = c(___ = ____))
+```
+
+`coronaplot` will inherit the class of whichever table is the reference table in the join. If done correctly, `coronaplot` will be an `sf` object (this can be verified running `class(coronaplot)`), I can use it directly in my ggplot to get a map. 
+
+## Basic Plot
+
+Fill in the ** and the ___ to get a choropleth map of confirmed cases. 
+
+```{r basic_plot}
+ggplot(data = coronaplot) +
+  geom_**(aes(fill = ___)))
+```
+
+
+## Improving the Plot
+
+Let's change the theme, remove the "x" and "y" axis titles, add some titles and fix the scientific notation in the color scale legend. 
+
+[`scales`](https://scales.r-lib.org/) is a package that comes with ggplot. "The scales packages provides the internal scaling infrastructure used by ggplot2, and gives you tools to override the default breaks, labels, transformations and palettes...Generally, I don’t recommend running `library(scales)` because when you type (e.g.) `scales::label_` autocomplete will provide you with a list of labeling functions to jog your memory."
+
+Try it now by filling in the blank below. Read the documentation (e.g. `?` in front of the command) and/or check out what some of the other auto_filled options do.
+
+```{r improved_plot}
+(p <- ggplot(data = coronaplot) +
+  geom_sf(aes(fill = cases)) +
+  theme_bw() +
+  theme(_____ = element_blank()) + #This line should remove the x and y axis titles
+  labs(fill = "Confirmed Cases", title = "Confirmed COVID-19 Cases by State",
+       subtitle = paste("as of", lubridate::today()-1)) +
+  scale_fill_continuous(labels = scales::______  )) #fix the number formatting in the legend
+```
+
+## Adding Labels of Cases to Each State
+
+To add labels to geometries, the `geom_sf_label()` or `geom_sf_text()` is very handy. It will automatically find the geometry column and find the centroid of the polygon. It then tries to place the label at that centroid.
+
+Let's label each state with the actual number of confirmed cases (in millions).
+
+```{r labels}
+p +
+  geom_sf_text(aes(_____ = cases))
+```
+
+The plot above doesn't look too good. We can fix it up by showing the label text in green. We can also change the way the number of cases is formatted, so that it is the same format as the legend (i.e. in millions with one decimal place shown).
+
+Run `?format()` to learn more about that function and its potential arguments.
+
+```{r labels}
+p +
+  geom_sf_text(aes(_____ = format(cases/1000000, _____ = 1)), 
+               _____ = "green")
+```
+
+## Alternative Labelling Method Using `ggrepel`
+
+Unfortunately, the plot above has overlapping labels that make it hard to read all the values in the northeastern United States.
+
+When you run `class(coronaplot)` you will notice that it is an `sf` object, but it is also a `data.frame`. This means we can also apply traditional `geom_*` layers to it. Specifically, we can add the labels using `geom_text_repel()` from the `ggrepel` package instead. (Remember to load the `ggrepel` package if you haven't yet).
+
+Try running the code below. Compared to the previous code chunk, the only thing that changed is the name of the geom. Check-out the error you get.
+
+```{r}
+p +
+  geom_text_repel(aes(label = format(cases/1000000, ____ = 1)), 
+               _____ = "green")
+```
+
+The error says, "geom_text_repel requires the following missing aesthetics: x and y". When we used `geom_sf_label()`, the function knew the information for finding the coordinates at which to place the labels was contained in the `geometry` column. However, since `geom_text_repel` is not an `sf` package geom, it needs us to tell it more explicitly where to plot the text.
+
+We can use the `stat` argument inside the geom. `stat` is an argument inside of many geoms. For example, look at `?geom_boxplot` or `?geom_bar`. The `stat` argument asks for some statistical summaries of the data and then plots those summaries (instead of the actual data). We haven't paid much attention to the `stat` argument because the defaults have been what we needed...until now. In `geom_text_repel` the default value for the `stat` argument is "identity", we need to change it to something else.
+
+The statistical transformation we need is the X, Y coordinates of the geometry column (or the centroid if the geometry column is a polygon). To get this we us the "sf_coordinates" statistical transformation, as can be seen in the code below. This transformation will provide the necessary X and Y aesthetic for graphing. Fill in the blank below and run the code. Then read the error.
+
+```{r}
+p +
+  geom_text_repel(aes(label = format(cases/1000000, digits = 1)), 
+               color = "green",
+               _____ = "sf_coordinates")
+```
+
+The error provides a clue about the last thing needed to get the code working:
+
+```{r ggrepel}
+p +
+  geom_text_repel(aes(label = format(cases/1000000, digits = 1),
+                      _____ = _______), 
+               color = "green",
+               _____ = "sf_coordinates",
+               force = 0) #Without this line, geom_text_repel tries to place the text to the side of the centroid, not directly on the centroid
+```
+
+Congratulation! You are ready to tackle the world, or at least a map of the world :).
+
+##### Solutions ########
+
+### Wrangling Solution
+
+The resulting class of `coronaplot` will depend on what order the tables in the join are listed. If `covid48` is listed first, the `coronaplot` will be of the same class as `covid48`. If `states` is listed first, then `coronaplot` will be of the same class as `states`. Since `states` is an `sf` object and we will want to do some mapping using those simple features geometries, we will list `states` first in the join.
+
+Also note, you could have joined on other fields, such as "fips" = "statefp", or some other combinations.
+
+If you chose the opposite order, don't worry. Simply convert `coronaplot` to an `sf` object with `st_as_sf()`. 
+An `inner_join` is not the only kind of join you could have done. Depending on the order you list the datasets, a left or right join could also work.
+
+```{r joining_key}
+coronaplot <- inner_join(states, covid48, by = c("name" = "state"))
+class(coronaplot) #note the object is an "sf"
+
+#Compare the code above to what is returned if you reverse the order:
+class(
+  inner_join(covid48, states, by = c("state" = "name"))
+)
+#note that the object is not an "sf"
+```
+
+### Basic Plot Solution
+
+```{r basic_plot_key}
+ggplot(data = coronaplot) +
+  geom_sf(aes(fill = cases))
+```
+
+### Improving the Plot Solutions
+
+```{r improved_plot_key}
+(p <- ggplot(data = coronaplot) +
+  geom_sf(aes(fill = cases)) +
+  theme_bw() +
+  labs(fill = "Confirmed Cases", title = "Millions of Confirmed COVID-19 Cases by State",
+       subtitle = paste("as of", lubridate::today()-1)) +
+  scale_fill_continuous(labels = scales::label_comma(scale = .0000001, suffix = " million")))
+```
+
+### Adding Labels to Each State Solution
+
+```{r labels_key}
+p +
+  geom_sf_text_repel(aes(label = format(cases/1000000, digits = 1)), 
+               color = "green")
+```
+
+### `ggrepel` Labelling Solution
+
+In the code below, we tell it that the simple feature geometry on which to run the "sf_coordinates" transformation is found in the `geometry` column of the dataset.
+
+```{r}
+p +
+  geom_text_repel(aes(label = format(cases/1000000, digits = 1),
+                      geometry = geometry), 
+               stat = "sf_coordinates",
+               color = "green",
+               force = 0)
+```
+

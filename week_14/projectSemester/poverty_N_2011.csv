@@ -1,0 +1,55 @@
+﻿Label (Grouping),United States!!Total!!Estimate,United States!!Total!!Margin of Error,United States!!Below poverty level!!Estimate,United States!!Below poverty level!!Margin of Error,United States!!Percent below poverty level!!Estimate,United States!!Percent below poverty level!!Margin of Error
+Population for whom poverty status is determined,"303,778,193","±23,617","48,452,035","±234,166",15.90%,±0.1
+AGE,,,,,,
+    Under 18 years,"72,802,773","±36,760","16,386,500","±124,253",22.50%,±0.2
+        Related children under 18 years,"72,481,653","±38,342","16,087,074","±123,762",22.20%,±0.2
+    18 to 64 years,"190,889,167","±25,155","28,335,079","±126,915",14.80%,±0.1
+    65 years and over,"40,086,253","±20,931","3,730,456","±26,781",9.30%,±0.1
+SEX,,,,,,
+    Male,"148,591,813","±35,168","21,825,281","±133,976",14.70%,±0.1
+    Female,"155,186,380","±34,397","26,626,754","±123,115",17.20%,±0.1
+RACE AND HISPANIC OR LATINO ORIGIN,,,,,,
+    One race,"295,329,421","±96,195","46,644,532","±232,566",15.80%,±0.1
+        White,"225,678,820","±110,100","29,260,632","±185,461",13.00%,±0.1
+        Black or African American,"37,510,171","±54,242","10,543,367","±89,715",28.10%,±0.2
+        American Indian and Alaska Native,"2,458,045","±33,459","724,528","±20,286",29.50%,±0.8
+        Asian,"14,728,302","±36,874","1,888,398","±42,525",12.80%,±0.3
+        Native Hawaiian and Other Pacific Islander,"491,826","±13,604","105,739","±9,778",21.50%,±1.8
+        Some other race,"14,462,257","±108,053","4,121,868","±75,797",28.50%,±0.5
+    Two or more races,"8,448,772","±94,333","1,807,503","±41,599",21.40%,±0.4
+Hispanic or Latino origin (of any race),"50,893,007","±19,661","13,126,374","±114,607",25.80%,±0.2
+"White alone, not Hispanic or Latino","192,557,395","±30,976","21,122,952","±147,999",11.00%,±0.1
+EDUCATIONAL ATTAINMENT,,,,,,
+    Population 25 years and over,"202,893,965","±68,110","24,702,566","±103,402",12.20%,±0.1
+    Less than high school graduate,"27,933,848","±108,733","7,784,811","±57,684",27.90%,±0.2
+    High school graduate (includes equivalency),"57,305,844","±110,771","8,113,171","±50,806",14.20%,±0.1
+"    Some college, associate's degree","59,058,822","±112,746","6,211,352","±47,338",10.50%,±0.1
+    Bachelor's degree or higher,"58,595,451","±172,265","2,593,232","±33,723",4.40%,±0.1
+EMPLOYMENT STATUS,,,,,,
+    Civilian labor force 16 years and over,"155,489,677","±126,178","15,487,311","±86,206",10.00%,±0.1
+    Employed,"139,592,269","±128,029","10,307,891","±60,928",7.40%,±0.1
+        Male,"73,106,090","±82,998","4,743,111","±41,497",6.50%,±0.1
+        Female,"66,486,179","±90,884","5,564,780","±42,903",8.40%,±0.1
+    Unemployed,"15,897,408","±66,142","5,179,420","±46,133",32.60%,±0.3
+        Male,"8,682,907","±47,961","2,590,962","±29,624",29.80%,±0.3
+        Female,"7,214,501","±45,175","2,588,458","±30,840",35.90%,±0.4
+WORK EXPERIENCE,,,,,,
+    Population 16 years and over,"239,385,366","±47,522","33,674,046","±139,305",14.10%,±0.1
+"    Worked full-time, year-round in the past 12 months","97,122,415","±128,748","2,862,608","±34,505",2.90%,±0.1
+    Worked part-time or part-year in the past 12 months,"59,243,071","±128,164","11,065,556","±64,942",18.70%,±0.1
+    Did not work,"83,019,880","±128,994","19,745,882","±101,821",23.80%,±0.1
+All Individuals below:,,,,,,
+    50 percent of poverty level,"21,459,639","±151,958",(X),(X),(X),(X)
+    125 percent of poverty level,"63,324,455","±271,288",(X),(X),(X),(X)
+    150 percent of poverty level,"78,288,180","±313,983",(X),(X),(X),(X)
+    185 percent of poverty level,"98,700,855","±349,806",(X),(X),(X),(X)
+    200 percent of poverty level,"106,826,236","±360,291",(X),(X),(X),(X)
+Unrelated individuals for whom poverty status is determined,"56,683,075","±175,048","15,290,319","±94,968",27.00%,±0.1
+Male,"27,796,477","±113,161","6,981,559","±63,736",25.10%,±0.2
+Female,"28,886,598","±103,482","8,308,760","±56,757",28.80%,±0.2
+Mean income deficit for unrelated individuals (dollars),"6,525",±19,(X),(X),(X),(X)
+"Worked full-time, year-round in the past 12 months","22,796,183","±111,937","726,896","±15,711",3.20%,±0.1
+"Worked less than full-time, year-round in the past 12 months","13,737,280","±69,994","5,488,930","±54,422",40.00%,±0.3
+Did not work,"20,149,612","±78,992","9,074,493","±59,724",45.00%,±0.2
+PERCENT IMPUTED,,,,,,
+    Poverty status for individuals,26.00%,(X),(X),(X),(X),(X)

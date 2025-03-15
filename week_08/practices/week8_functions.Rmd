@@ -1,0 +1,81 @@
+---
+title: "Week 8 Functions"
+output: 
+  html_document:  
+    keep_md: false
+    toc: true
+    toc_float: true
+    code_folding: show
+    fig_height: 6
+    fig_width: 12
+    fig_align: 'center'
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, error = TRUE)
+
+```
+
+```{r include = FALSE}
+library(tidyverse, warn.conflicts = FALSE)
+library(jsonlite)
+```
+
+## Reading review
+
+We are using functions all the time in R. R is a functional programming language. Now we want to write our own custom function. Write your own function is useful for repetitive tasks (more than 3x). In addition, compared to copying and pasting and then tweaking code, functions are easier to read, update, and less error prone.
+
+Think of a function as a set of commands you want to repeat multiple times. It's helpful to think of a function as able to **only return one thing (object)**. However, the object can be a scalar, a vector, a list, a plot, or any type of defined object in R.
+
+Steps/pieces to function writing
+
+1.    Decide what you want the function to return/do
+2.    Identify the necessary inputs (these will be your arguments)
+3.    Write working code for a single, simple example
+4.    Place your code in the function syntax and test it
+
+## Function syntax
+
+Here is the syntax for an example function with two inputs. Note, a default value is set for input2, so no input is needed when the function is called.
+
+```{r echo = TRUE}
+
+new_function_name <- function(input1, input2="default value"){
+  
+  things <- paste(input1, input2)
+  things
+}
+```
+
+The last thing mentioned in the function will be the object that is returned. This function returns the `things` object after manipulating the two inputs.
+
+## ... and return()
+
+The `...` allow you to define a function with indefinite inputs. For example, another function may be called inside of your function. If you need to pass arguments to that function but don't want to explicitly define all possible inputs you can use `...` when defining the function.
+
+return() allows you to state explicitly what value the function should return (and then stop the function). Generally this is used in something like an if-else or loop or to be sure you are returning what you expected.
+
+## Function call
+
+Now that I have defined a function, I can call the function.
+
+```{r echo = TRUE}
+new_function_name(input1 = "now you can see the")
+
+new_function_name(input1 = "I overode the", 
+                  input2 = "default value for input2")
+```
+
+You can see the guts of a function with `print(function_name)`.
+
+## Warning!
+
+To use a column of a dataset as an input to a function requires some extra steps and care. Use {{}} to reference the column in the function in tidyverse code.
+
+It can get complicated.
+
+## Example 1
+
+This video illustrates some of the techniques described above in the context of the "Counting Words" task previously completed. It starts with a very simple function and gradually makes it more flexible and robust.
+
+https://www.loom.com/share/7caff5b306f649df81d456b581fb0134

@@ -1,0 +1,320 @@
+---
+title: "Dealing with Multiple Layers"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:  
+    keep_md: false
+    toc: true
+    toc_float: true
+    code_folding: hide
+    fig_height: 6
+    fig_width: 12
+    fig_align: 'center'
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, error = TRUE)
+```
+
+```{r load_libraries, echo = FALSE}
+# Use this R-Chunk to load all your libraries!
+#install.packages("tidyverse") # run this line once in console to get package
+library(tidyverse)
+
+```
+
+*Do the reading first*, then use what you learned to practice here.
+
+# Exercises / Activity
+
+We are going to practice applying ggplot with the iris dataset. `iris` is a pre-loaded dataset that comes with the tidyverse package. If you are working with a pre-loaded dataset in R you can use ? to learn more about it.
+
+```{r eval = FALSE, echo=TRUE}
+?iris
+```
+
+## Where to place your mapping argument and aesthetics.
+
+
+Let's create a plot to investigate relationship between Sepal.Width and Sepal.Length
+
+```{r}
+ggplot(data = iris, 
+       mapping = aes(x=Sepal.Width, 
+                     y = Sepal.Length)) +
+  geom_point()
+```
+
+Now try sticking the `mapping` argument and its inputs in the `geom_point()` function instead. 
+
+```{r}
+ggplot(data = iris) +
+  geom_point(mapping = aes(x = Sepal.Width, 
+                     y = Sepal.Length))
+```
+
+
+- Did it change the plot?  
+    - Answer : NOT
+- What are the advantages (or disadvantages) of putting the mapping argument in the ggplot() instead of geom_point()?
+    - can be used to other geometries avoiding repetition.
+
+In this case, it didn't change the plot. By defining the mapping and aesthetics in the ggplot() all additional layers will inheret those definitions. So, even though `geom_point()` is empty, it has inherited everything from the `ggplot()` statement. If, in a particular geom,  you want to override one of the values in `ggplot()` or want to define something specific to that geom you can do so in the geom statement.
+
+In the code below we encode the Species data with color, and make all the points diamond shape.
+
+```{r}
+ggplot(data = iris, 
+       mapping = aes(x=Sepal.Width, 
+                     y = Sepal.Length, 
+                     color = Species)) +
+  geom_point(shape = 18)
+```
+
+In addition to encoding species into the color of the points, we would also like to encode Species of the data into the shape of the point. Fill in the code blanks below so that the code will create such a chart.
+```{r shape}
+ggplot(data = iris, 
+       mapping = aes(x=Sepal.Width, 
+                     y = Sepal.Length, 
+                     color = Species,
+                     shape = Species)) +
+  geom_point()
+```
+
+*THINK ABOUT IT:* What was the impact of sticking something within the `aes()`, vs. outside of `aes()`?
+
+## Adjusting the scale of various aesthetics
+
+### Adjust the shape aesthetic
+
+Instead of just accepting the default shapes assigned to each species, we want to assign a specific shape to each species.
+
+```{r}
+ggplot(data = iris, mapping = aes(x=Sepal.Width, 
+                                  y = Sepal.Length, 
+                                  color = Species,
+                                  shape = Species)) +
+  geom_point() +
+  scale_shape_manual(values =  c(1, 5, 7)) 
+```
+
+### Adjust the x and y scales
+
+Notice that you can play with the scale of each aesthetic in a similar way. Try changing the x and y axis to a log scale by **filling in the *'s.**
+
+
+
+```{r xy_scale}
+ggplot(data = iris, 
+       mapping = aes(x=Sepal.Width,
+                     y = Sepal.Length, 
+                     color = Species,
+                     shape = Species)) +
+  geom_point() +
+  scale_shape_manual(values =  c(1, 5, 7)) +
+  scale_x_log10() +
+  scale_y_log10()
+```
+
+### Adjust the color aesthetic
+
+Now, try to make setosa purple, versicolor orange and virginica blue
+
+```{r color}
+ggplot(data = iris, mapping = aes(x=Sepal.Width, 
+                                  y = Sepal.Length, 
+                                  color = Species,
+                                  shape = Species)) +
+  geom_point() +
+  scale_shape_manual(values =  c(1, 5, 7)) +
+  scale_x_log10() +
+  scale_y_log10() +
+  scale_color_manual(values = c("purple", "orange", "blue"))
+```
+
+You can get carried away with color. Use the work many others have done for attractive, useful combinations. Use brewer color scale. For continuous variables, you can customize the coloring with scale_color_gradient().
+
+```{r}
+ggplot(data = iris, 
+       mapping = aes(x=Sepal.Width, 
+                     y = Sepal.Length, 
+                     color = Species,
+                     shape = Species),
+       size = 5) +
+  geom_point() +
+  scale_color_brewer(palette = "Set1") 
+#See the book for all the colors
+```
+
+
+## Properly Labelling a Chart
+
+Fill in the blanks and the *** so that this code will run and so that the labels will be placed in the right spot.
+```{r label1}
+ggplot(data = iris, mapping = aes(x=Sepal.Width, 
+                                  y = Sepal.Length, 
+                                  color = Species,
+                                  shape = Species)) +
+  geom_point() +
+  scale_shape_manual(values =  c(1, 5, 7)) +
+  scale_x_log10() +
+  scale_y_log10() +
+  scale_color_brewer( palette = "Set1") +
+  labs(x= "Sepal Width (cm)",
+       y = "Sepal Length (cm)",
+       title = "This is where I would put a title")
+```
+
+
+How would you change the legend title to read "Species of Iris" instead?
+
+```{r legend_title}
+ggplot(data = iris, mapping = aes(x=Sepal.Width, 
+                                  y = Sepal.Length, 
+                                  color = Species,
+                                  shape = Species)) +
+  geom_point() +
+  scale_shape_manual(values =  c(1, 5, 7)) +
+  scale_x_log10() +
+  scale_y_log10() +
+  scale_color_manual(values = c("purple", "orange", "blue")) +
+  labs(x= "Sepal Width (cm)",
+       y = "Sepal Length (cm)",
+       title = "Algo que cambie",
+        color = "Species of Iris",
+        shape = "Species of Iris") +
+  theme_light()
+```
+
+In the above code note the use of `theme_bw()`. There are some preprogrammed themes which alter many formatting aspects of the chart at once instead of having to alter each aspect one at t time. Try playing with the chart by typing theme_ and then selecting from other of the autofill options.
+
+This is actually an example of a shortcut command. Inputs to the more general command, `theme()` allows you to control non-data elements of the chart.
+
+## Facetting
+
+By adding `facet_wrap()` this code creates a separate panel (or facet) for each species, instead of plotting them all on the same plot. You can store a plot in an object, as is done below. This will allow you to add layers and make adjustments without having to retype all the code again.
+
+```{r}
+p<- ggplot(data = iris, mapping = aes(x=Sepal.Width, 
+                                  y = Sepal.Length, 
+                                  color = Species,
+                                  shape = Species)) +
+  geom_point() +
+  scale_shape_manual(values =  c(1, 5, 7)) +
+  scale_x_log10() +
+  scale_y_log10() +
+  scale_color_manual(values = c("purple", "orange", "blue")) +
+  labs(x= "Sepal Width (cm)",
+       y = "Sepal Length (cm)",
+       title = "This is where I would put a title",
+       color = "Species of Iris",
+       shape = "Species of Iris") + 
+  theme(plot.title = element_text(hjust = .5)) +
+  theme_bw() +
+  facet_wrap(vars(Species)) 
+
+p
+```
+
+Now we would like to add a horizontal line to each facet to represent the mean Sepal length for the respective species. To do that, we have to calculate those three means.
+```{r}
+averages <- iris %>% 
+  group_by(Species) %>% 
+  summarise(avglength = mean(Sepal.Length))
+averages
+```
+
+## Overriding the arguments in ggplot() with arguments put directly into a geom_ command 
+
+The iris data used to create plot `p` does not contain the average sepal length for each species. To add a different horizontal line to each facet the geom_hline command must reference the `averages` dataset we just created above.
+
+```{r override}
+p +
+  geom_hline(data = averages, 
+                mapping = aes( yintercept = avglength))
+#hint: run ?geom_hline to look at the needed aesthetics for geom_hline 
+?geom_hline
+```
+
+*Think about it*: How could you change the color of all 3 horizontal lines to be red instead of black? How could you change the color of the 3 lines to match the points in their respective facets?
+
+
+# Solution
+
+## shape code chunk
+```{r shape_solution, eval= FALSE, echo = TRUE}
+ggplot(data = iris, 
+       mapping = aes(x=Sepal.Width, 
+                     y = Sepal.Length, 
+                     color = Species,
+                     shape = Species)) +
+  geom_point()
+```
+
+## xy_scale chunk
+```{r xy_scale_solution, eval= FALSE, echo = TRUE}
+ggplot(data = iris, 
+       mapping = aes(x=Sepal.Width,
+                     y = Sepal.Length, 
+                     color = Species,
+                     shape = Species)) +
+  geom_point() +
+  scale_shape_manual(values =  c(1, 5, 7)) +
+  scale_*_log10() +
+  scale_*_log10()
+```
+
+## color chunk
+```{r color_solution, eval = FALSE, echo = TRUE}
+ggplot(data = iris, mapping = aes(x=Sepal.Width, 
+                                  y = Sepal.Length, 
+                                  color = Species,
+                                  shape = Species)) +
+  geom_point() +
+  scale_shape_manual(values =  c(1, 5, 7)) +
+  scale_x_log10() +
+  scale_y_log10() +
+  scale_color_manual(values = c("purple", "orange", "blue"))
+```
+
+## label1 chunk
+```{r label1_solution, eval = FALSE, echo = TRUE}
+ggplot(data = iris, mapping = aes(x=Sepal.Width, 
+                                  y = Sepal.Length, 
+                                  color = Species,
+                                  shape = Species)) +
+  geom_point() +
+  scale_shape_manual(values =  c(1, 5, 7)) +
+  scale_x_log10() +
+  scale_y_log10() +
+  scale_color_brewer(palette = "Set1") +
+  labs(x= "Sepal Width (cm)",
+       y = "Sepal Length (cm)",
+       title = "This is where I would put a title")
+```
+
+## legend_title chunk
+```{r legend_title_solution, eval = FALSE, echo = TRUE}
+ggplot(data = iris, mapping = aes(x=Sepal.Width, 
+                                  y = Sepal.Length, 
+                                  color = Species,
+                                  shape = Species)) +
+  geom_point() +
+  scale_shape_manual(values =  c(1, 5, 7)) +
+  scale_x_log10() +
+  scale_y_log10() +
+  scale_color_manual(values = c("purple", "orange", "blue")) +
+  labs(x= "Sepal Width (cm)",
+       y = "Sepal Length (cm)",
+       title = "This is where I would put a title",
+        color = "Species of Iris",
+       shape = "Species of Iris") +
+  theme_bw()
+```
+
+## override chunk
+```{r override_solution, eval = FALSE, echo = TRUE}
+p +
+  geom_hline(data = averages, 
+                mapping = aes( yintercept = avglength))
+```

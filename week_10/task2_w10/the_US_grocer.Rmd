@@ -1,0 +1,106 @@
+---
+title: "The US Grocer (KR)"
+author: "Carlos Gerez"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:  
+    keep_md: true
+    toc: true
+    toc_float: true
+    code_folding: hide
+    fig_height: 6
+    fig_width: 8.5
+    fig_align: 'center'
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r load_libraries, include=FALSE}
+# Use this R-Chunk to load all your libraries!
+#install.packages("tidyverse") # run this line once in console to get package
+library(tidyverse)
+library(quantmod)
+library(tidyquant)
+
+#install.packages("dygraphs")
+library(dygraphs)
+```
+
+```{r load_data}
+# Use this R-Chunk to import all your datasets!
+
+
+tickers <- "KR"
+
+getSymbols(tickers)
+
+
+```
+
+## Background
+1. Build the library(dygraphs) plot that shows the Kroger (KR) stock price performance over five years.  
+2. Imagine that you invested \$10,000 in Kroger about two years ago on April 5th. Make a graph with dygraph that shows performance dyRebased() to $10,000.  
+3. At two or more time points, or intervals, where the price had a significant shift annotate the graphic with a note of the reason why.  
+4. Create an .Rmd file with one to two paragraphs summarizing your graphics and the choices you made in the data presentation.  
+5. Push your .Rmd, .md, and .html file into your git repository.  
+6. Publish your assignment via Rstudio Connect at shiny.byui.edu
+
+## Data Wrangling
+
+```{r tidy_data}
+# Use this R-Chunk to clean & wrangle your data!
+
+```
+
+## Data Visualization
+
+```{r plot_data}
+# Use this R-Chunk to plot & visualize your data!
+
+
+# This code make a call to apply a function to KR, but still cant get on how it works completelly.
+# Positive thing is that works both for one or more tickers.
+
+
+#---------------------- UPDATE how it works ------------------
+#Duck typing with quantmod
+# the cl after function retrieves from tockers "KR" and from KR the column that have cl
+# that is KR.close I try with Ad and work as well
+
+closePrices <- do.call(merge, lapply(tickers, function(x) Cl(get(x))))
+closePrices
+dateWindow <- c("2021-04-05", "2023-06-21")
+
+dygraph(closePrices, main = "Value of $10,000 invested in KR on April 5th 2021", group = "stock") %>%
+  dyRebase(value = 10000) %>%
+  dyRangeSelector(dateWindow = dateWindow) %>% 
+  dyShading(from = "2022-3-3", to = "2022-6-15", color = "#CCEBD6") %>%
+  dyShading(from = "2022-10-17", to = "2023-3-24", color = "#FFE6E6") %>% 
+  dyAnnotation("2022-4-8", text = "H", tooltip = "Stock price soars after Q4 results") %>%
+  dyAnnotation("2022-10-17", text = "L", tooltip = "Less favorable pricing environment in 2022-2023")
+
+dygraph(closePrices, main = "Percent variation of KR shares", group = "stock") %>%
+  dyRebase(percent = TRUE) %>%
+  dyRangeSelector(dateWindow = dateWindow) %>% 
+  dyEvent("2022-4-8", "High", labelLoc = "bottom") %>%
+  dyEvent("2022-10-17", "Low", labelLoc = "bottom") %>% 
+  dyLegend(show = "follow") 
+
+
+dygraph(closePrices, main = "Price per share", group = "stock") %>%
+  dyRangeSelector(dateWindow = dateWindow) %>% 
+  dyLegend(show = "follow") 
+
+
+
+```
+
+## Conclusions
+
+- It took me a while to understand how quantmod get the data and the functions that are applied in the construction of the straw broom charts in dygraphs. I think that after experimenting with the results of the functions, I will gain a better understanding of how rebase works. I believe that if had more time will be interesting to get the same data with tidyqant and graph accordingly.   
+- These are powerful packages that integrate a lot of functions in the back and allow us to use even CSS to style the results. Hope to explore that side also in the future.  
+- In this graphs I experimented a bit with different annotations and related functions and didn't pay much attention to the consistency of the messages, and visual renders,  since this is a first approach to new packages.
+
+ 

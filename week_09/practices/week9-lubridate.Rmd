@@ -1,0 +1,289 @@
+---
+title: "Week 9 Date Time"
+output: 
+  html_document:  
+    keep_md: false
+    toc: true
+    toc_float: true
+    code_folding: show
+    fig_height: 6
+    fig_width: 12
+    fig_align: 'center'
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, error = TRUE)
+
+```
+
+```{r include = FALSE}
+library(tidyverse, warn.conflicts = FALSE)
+library(lubridate)
+```
+
+## Appreciating time
+
+
+“Only the passage of time ultimately separates each generation. Our humanity remains stalwartly impervious to political manipulations and to the social, culture and economic tidings that each generation must etch out a living. Our sense of time past, present and future is the common denominator that each generation shares because time refuses to standstill for mere human beings. Time cannot be ignored or shunted, but must be respected for the indomitable power that its relentless pressure applies upon each of us. The unyielding power of time sneers at each of us regardless of our race, religion, creed, nationality, gender, age... Potency of time is irreducible, it is irreversible, and it is inerasable. **Through the periscope of memory, we can dice snippets of time’s atoms into infinitesimal pictures of mere moments**; we can harness select prized memories to build a molecular mind’s magical playhouse. The capacity of the human mind for memory enables people to preserve, retain, and subsequently recall knowledge, information, and experience. **Replaying snapshots of the past enables us to comprehend the magnitude of the present and take account of the inevitability of our future.**”
+― Kilroy J. Oldster, Dead Toad Scrolls
+
+### The March of Time
+
+Time, it turns out, is quite complex. The way in which it is depicted can be wide ranging. Consider the way in which time is depicted in these visualizations. What are the pros and cons of the ways the authors chose to depict time.
+
+- [Napolean's March:](http://uxmag.com/sites/default/files/uploads/whitney-its-about-time/Minard.png) In his iconic flow map of Napoleon's catastrophic 1812 invasion of Russia, Charles Joseph Minard blends and bends temporal and spatial representations. The path and number of outward-bound soldiers is represented by an initially thick tan ribbon while the dwindling numbers of retreating survivors are represented by a narrowing black band. In this visualization, the time it took to march into Russia is not clear. The only time stamps shown are for the return trip and progressing from right to left. In a sense, time is "bent" to advance the impact of the visual narrative.
+
+- The March of Wal-Mart
+    -    [Small multiples](http://excelcharts.com/wp-content/uploads/2012/06/walmart-growth-micromaps1.png)
+    -    [Small multiples without spatial](http://excelcharts.com/wp-content/uploads/2012/06/walmart-reorderable-matrix.png)
+
+- [March of the Wind using animation and "real time" data](http://hint.fm/wind/)
+
+- [The Movie March](http://www.nytimes.com/interactive/2008/02/23/movies/20080223_REVENUE_GRAPHIC.html?_r=0).
+
+### Plotly Time Visualization examples
+
+The purpose of this exercise is to encourage you to think more deeply about the structure of time and how to creatively leverage its complex structure in your visualizations.
+
+See if you can identify plots in this [visualization gallery](https://plotlyblog.tumblr.com/post/117105992082/time-series-graphs-eleven-stunning-ways-you-can) that show the following:
+ 
+-   Time conceptualized as a discrete measure, or as a continuous measure, or simultaneously visualized as both
+-   An an interactive chart, where the units on the x-axis change depending on the level of zoom
+-   Faceting/small multiples to show progression of time
+-   Nested or hierarchical structure of time
+-   Cyclical or repeating structure of time
+-   Progression of time using a scale other than the x axis (i.e. the y-axis or polar coordinates)
+-   Use of time units vs. date units
+-   The arbitrary scale of time, moving in the positive and/or negative direction
+
+## Lubridate Package
+
+The [lubridate package cheat sheet](https://raw.githubusercontent.com/rstudio/cheatsheets/master/pngs/thumbnails/lubridate-cheatsheet-thumbs.png) will be helpful to you. 
+
+When working with dates you will generally be interested in accomplishing 1 or more of the following tasks:
+
+-   Create date/time objects from data that is not currently a date/time object
+-   Access, or pull, certain pieces of information from a date/time object
+-   Change, modify, or calculate a date/time
+
+### Creator Functions
+
+Use one of these functions to **create dates from strings**, depending on the order of the information in the string:
+
+-   `ymd(), mdy(), dmy(), ydm()`
+
+Convert the following strings to date objects in R
+
+   * "January 21st, 2017"
+   * "2012-01-01"
+   * "March 2016 - 23"
+   
+```{r string_to_date}
+library(lubridate)
+
+x  <- mdy("January 21st, 2017")
+x
+
+x1 <- ydm("2012-01-01")
+x1
+
+x2 <- myd("March 2016 - 23")
+x2
+```
+
+Now use one of the functions below to **create dates from numbers**.
+
+-   `make_date(), make_datetime()`
+
+Run the code below to create a data table of date information. Each column contains a separate piece of information that we will want to combine into a date object.
+
+```{r echo=TRUE}
+date_cols <- tibble(some_months = c(1, 3, 7), 
+                    months_name = c("Jaunary", "March", "July"),
+                    some_days = c(23, 18, 1), 
+                    some_years = c(2017, 2017, 2016))
+
+date_cols
+
+```
+
+Now, take the data in the `date_cols` table and create a column of dates.
+
+```{r num_to_date}
+date_cols %>% mutate(
+                  dates = make_date(some_years, some_months, some_days),
+                  dates_times = make_datetime(some_years, some_months, some_days) 
+)
+
+```
+
+### Accessor Functions
+
+You can pull out individual parts of the date with the accessor functions; year(), month(), mday() (day of the month), yday() (day of the year), wday() (day of the week), hour(), minute(), and second().
+
+**Challenge**
+
+Write code to determine:
+
+- What weekday "March 23, 2016" falls on.
+- What day of the year was "March 23, 2016" it? (January 1st would be day 1, December 31st would be day 365)
+
+```{r accessor}
+
+day <- mdy("March 23, 2016")
+wich_day <- yday(day)
+wich_day
+```
+
+### Changer Functions
+
+Use **periods** to reference calendar or clock times. Use **durations** to model physical processes. All durations are measured in seconds, the only time unit with a consistent length.
+
+**Challenge**
+
+Write code that does the following:
+
+- Add 27 hours and 15 minutes to "January 31st, 2013 06:35:27" 
+- Add one month to "January 31st".  
+
+
+
+```{r changer1}
+jan31_t <- ymd_hms("2013-01-31 06:35:27")
+jan31 <- ymd("2013-01-31")
+
+x4 <- jan31_t + hours(27) + minutes(15)
+
+jan31 + month(1)
+
+```
+
+*Why can't you add one month to January 31st? *
+
+Note that when you use date-times in a numeric context (like in a histogram), 1 means 1 second, so a binwidth of 86400 means one day. For dates, 1 means 1 day.
+
+Here are some other useful functions from the lubridate package.
+
+ - floor_date(), 
+ - round_date(), and 
+ - ceiling_date()
+
+
+### Time zones
+
+Dates and times always have a time zone associated with them. UTC is the default time zone. (Just google it if you want to learn more about UTC). If you want to change the timezone label without actually changing the value of the date/time, then use `force_tz()`.
+
+If you actually want to shift the date/time values and the time zone label use `with_tz()`. 
+
+Use `Sys.timezone(location = TRUE)` to see the timezone you are in, or use `OlsonNames()` to see a list of timezones
+
+**Challenge**
+
+The code below creates a date/time object and stores it in a variable called `x`. Write code to determine what quarter of the year `x` is in for each of the two scenarios below:
+
+1. The value for `x` is recorded in UTC, but you would like to convert it to local time.
+
+2. The value for `x` is read into R as UTC, but you know those times are actually representative of your local time zone.
+
+```{r time_zone}
+library(lubridate)
+x <- ymd_hms("2009-07-01 2:01:59.23")
+
+quarter(x)
+
+
+
+```
+
+
+## Additional Reading
+
+These are optional readings:
+
+[lubridate vignette](https://cran.r-project.org/web/packages/lubridate/vignettes/lubridate.html)
+    
+[Nice reading on lubridate](https://blog.exploratory.io/5-most-practically-useful-operations-when-working-with-date-and-time-in-r-9f9eb8a17465)
+
+## Solution Chunks
+
+
+### Strings to Date
+
+
+```{r string_to_date_solution, eval = FALSE, echo = TRUE}
+library(lubridate)
+
+#This shows that each of these is a character string
+class("January 21st, 2017")
+class("2012-01-01")
+class("March 2016 - 23")
+
+#Now I am converting the strings to date time objects. The 2nd line of code with the call to class is simply meant to prove that the command converted it from a string to a date
+mdy("January 21st, 2017") 
+mdy("January 21st, 2017") %>% class()
+
+ymd("2012-01-01") 
+ymd("2012-01-01") %>% class()
+
+myd("March 2016 - 23") 
+myd("March 2016 - 23") %>% class()
+
+```
+
+### Numbers to Date
+
+```{r num_to_date_solution, eval = FALSE, echo = TRUE}
+
+date_cols <- tibble(some_months = c(1, 3, 7), 
+                    months_name = c("Jaunary", "March", "July"),
+                    some_days = c(23, 18, 1), 
+                    some_years = c(2017, 2017, 2016))
+
+date_cols %>% mutate(mydate = make_date(year = some_years, 
+                                        month = some_months,
+                                        day = some_days))
+
+#Note, I can't use months_name because make_date() requires numeric inputs.
+```
+
+
+### Accessing Function
+
+```{r accessor_solution, eval = FALSE, echo = TRUE}
+mdy("March 23, 2016") %>% wday() #This tells me it was the 4th day of the week. It returns a number
+mdy("March 23, 2016") %>% wday(label = TRUE) #This gives me the name of the weekday, a factor variable, thus removing ambiguity about what day 4 actually represents
+
+mdy("March 23, 2016") %>% yday() #It is the 83rd day of the year
+
+```
+
+
+### Change Solutions
+
+```{r change1_solution, eval = FALSE, echo = TRUE}
+jan31_t <- ymd_hms("2013-01-31 06:35:27")
+jan31 <- ymd("2013-01-31")
+
+jan31_t + hours(27) + minutes(15)
+jan31 + months(1) #months does not have a constant value of days, it is not clear what it means to add a month to January 31st.
+```
+
+### Time Zone Solution
+
+```{r time_zone_solution, eval = FALSE, echo = TRUE}
+x <- ymd_hms("2009-07-01 2:01:59.23") 
+x #by default it assigns the UTC time zone
+
+#Scenario 1, converting the time to a local time zone
+Sys.timezone(location = TRUE) #This shows me I am in the American/Denver timezone. Depending on where you are, it may show something different.
+
+with_tz(x, tz = Sys.timezone(location = TRUE)) %>%  
+  #Notice how the date/time has been adjusted to account for the differenc in timezones, in local time it was still in June
+quarter() #June is in the 2nd quarter, this may differ depending on your time zone
+
+#Scenario 2, converting the timezone label without adjusting the actual time
+force_tz(x, tz = "America/Denver") %>%  #I can type in a specific timezone
+  #Notice how the date/time has NOT been changed, but the label has changed from UTC to MDT
+quarter() #July is in the 3rd quarter
+with_tz(x, tz = Sys.timezone(location = TRUE)
+```
