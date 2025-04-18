@@ -19,7 +19,7 @@ output:
 
 
 ```r
-# Use this R-Chunk to import all your datasets!
+
 ```
 
 ## Background
@@ -40,7 +40,7 @@ output:
 
 
 ```r
-# Use this R-Chunk to clean & wrangle your data!
+
 ```
 
 ## Data Visualization
