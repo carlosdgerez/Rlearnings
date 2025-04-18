@@ -77,7 +77,7 @@ ggplot(gap_weight) +
 ![](dplyr_and_Gapminder_Part_II_files/figure-html/plot_data-1.png)<!-- -->
 
 ```r
-# 
+
 ```
 
 ## Conclusions
