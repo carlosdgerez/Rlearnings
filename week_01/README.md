@@ -1,4 +1,3 @@
-# Week 1 Notes
 ---
 title: "Case Study W01"
 author: "Carlos Gerez"
